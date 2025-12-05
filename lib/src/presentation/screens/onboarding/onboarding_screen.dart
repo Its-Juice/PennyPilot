@@ -55,14 +55,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Container(
                           height: 200,
                           width: 200,
+                          padding: const EdgeInsets.all(32),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primaryContainer,
+                            color: Theme.of(context).colorScheme.surfaceVariant,
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(
-                            Icons.savings,
-                            size: 80,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          child: Image.asset(
+                            'assets/pennypilot_logo.png',
+                            fit: BoxFit.contain,
                           ),
                         ),
                         const SizedBox(height: 32),
