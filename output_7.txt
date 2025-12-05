@@ -1,0 +1,14 @@
+Running Gradle task 'assembleRelease'...                        
+Failed to set compileSdkVersion for app: null
+Forced compileSdkVersion to 34 for google_sign_in_android
+Set namespace for isar_flutter_libs
+Forced compileSdkVersion to 34 for isar_flutter_libs
+Forced compileSdkVersion to 34 for path_provider_android
+Forced compileSdkVersion to 34 for workmanager_android
+warning: [options] source value 8 is obsolete and will be removed in a future release
+warning: [options] target value 8 is obsolete and will be removed in a future release
+warning: [options] To suppress warnings about obsolete options, use -Xlint:-options.
+3 warnings
+Caught exception: Already watching path: /home/johnkap/Code Projects/PennyPilot/android
+Running Gradle task 'assembleRelease'...                           22.1s
+✓ Built build/app/outputs/flutter-apk/app-release.apk (50.5MB)

@@ -711,9 +711,27 @@
     },
     {
       "name": "workmanager",
-      "rootUri": "file:///home/johnkap/.pub-cache/hosted/pub.dev/workmanager-0.5.2",
+      "rootUri": "file:///home/johnkap/.pub-cache/hosted/pub.dev/workmanager-0.9.0+3",
       "packageUri": "lib/",
-      "languageVersion": "3.1"
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "workmanager_android",
+      "rootUri": "file:///home/johnkap/.pub-cache/hosted/pub.dev/workmanager_android-0.9.0+2",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "workmanager_apple",
+      "rootUri": "file:///home/johnkap/.pub-cache/hosted/pub.dev/workmanager_apple-0.9.1+2",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "workmanager_platform_interface",
+      "rootUri": "file:///home/johnkap/.pub-cache/hosted/pub.dev/workmanager_platform_interface-0.9.1+1",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
     },
     {
       "name": "xdg_directories",

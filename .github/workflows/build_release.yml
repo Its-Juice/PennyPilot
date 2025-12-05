@@ -17,15 +17,8 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Create platform folders
-        run: flutter create .
-
       - name: Install dependencies
         run: flutter pub get
-
-      - name: Fix Isar Namespace
-        run: |
-          sed -i 's/android {/android { namespace "dev.isar.isar_flutter_libs"/' /home/runner/.pub-cache/hosted/pub.dev/isar_flutter_libs-3.1.0+1/android/build.gradle
 
       - name: Generate Launcher Icons
         run: flutter pub run flutter_launcher_icons
