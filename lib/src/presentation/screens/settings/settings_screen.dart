@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:pennypilot/src/presentation/screens/settings/privacy_security_screen.dart';
+import 'package:pennypilot/src/presentation/screens/settings/backup_screen.dart';
 
-class SettingsScreen extends StatelessWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pennypilot/src/presentation/providers/email_provider.dart';
+
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -19,17 +24,45 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.security),
             title: const Text('Privacy & Security'),
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PrivacySecurityScreen()),
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.refresh),
             title: const Text('Rescan Emails'),
-            onTap: () {},
+            onTap: () async {
+              try {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Scanning emails...')),
+                );
+                await ref.read(emailServiceProvider).scanEmails();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Scan complete')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Scan failed: $e')),
+                  );
+                }
+              }
+            },
           ),
           ListTile(
             leading: const Icon(Icons.backup),
             title: const Text('Backups'),
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const BackupScreen()),
+              );
+            },
           ),
           const Divider(),
           ListTile(

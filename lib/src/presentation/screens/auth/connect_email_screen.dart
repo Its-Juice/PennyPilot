@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pennypilot/src/presentation/providers/auth_provider.dart';
 import 'package:pennypilot/src/presentation/screens/dashboard/dashboard_screen.dart';
 
-class ConnectEmailScreen extends StatelessWidget {
+class ConnectEmailScreen extends ConsumerWidget {
   const ConnectEmailScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Connect Accounts'),
@@ -25,8 +27,27 @@ class ConnectEmailScreen extends StatelessWidget {
               icon: Icons.mail,
               label: 'Connect Gmail',
               color: Colors.red.shade700,
-              onPressed: () {
-                // TODO: Implement Gmail OAuth
+              onPressed: () async {
+                try {
+                  final authService = ref.read(authServiceProvider);
+                  final account = await authService.signInWithGoogle();
+                  if (account != null && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Connected to ${account.email}')),
+                    );
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const DashboardScreen(),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to connect: $e')),
+                    );
+                  }
+                }
               },
             ),
             const SizedBox(height: 16),
