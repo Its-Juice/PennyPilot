@@ -6,7 +6,6 @@ import 'package:pennypilot/src/presentation/widgets/amount_display.dart';
 import 'package:pennypilot/src/presentation/providers/data_providers.dart';
 import 'package:pennypilot/src/services/subscription_intelligence_service.dart';
 import 'package:intl/intl.dart';
-import 'dart:convert';
 
 class SubscriptionDetailsScreen extends ConsumerWidget {
   final SubscriptionModel subscription;

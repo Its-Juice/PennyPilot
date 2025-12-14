@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pennypilot/src/presentation/providers/data_providers.dart';
+import 'package:isar/isar.dart';
 import 'package:pennypilot/src/data/models/email_sender_preference_model.dart';
 import 'package:pennypilot/src/presentation/widgets/empty_state.dart';
 import 'package:intl/intl.dart';
