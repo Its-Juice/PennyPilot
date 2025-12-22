@@ -6,6 +6,9 @@ import 'package:pennypilot/src/presentation/widgets/empty_state.dart';
 import 'package:pennypilot/src/presentation/widgets/amount_display.dart';
 import 'package:pennypilot/src/data/models/subscription_model.dart';
 
+import 'package:pennypilot/src/presentation/screens/subscriptions/add_subscription_sheet.dart';
+import 'package:pennypilot/src/core/utils/page_transitions.dart';
+
 class SubscriptionsScreen extends ConsumerStatefulWidget {
   const SubscriptionsScreen({super.key});
 
@@ -15,6 +18,16 @@ class SubscriptionsScreen extends ConsumerStatefulWidget {
 
 class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
   String _filter = 'all'; // 'all', 'active', 'trial', 'paused', 'ended'
+
+  void _showAddSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const AddSubscriptionSheet(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,12 +41,7 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () {
-              // TODO: Add manual subscription
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Add subscription coming soon')),
-              );
-            },
+            onPressed: _showAddSheet,
             tooltip: 'Add Subscription',
           ),
         ],
@@ -44,16 +52,11 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
             return EmptyState(
               icon: Icons.subscriptions,
               title: 'No Subscriptions Found',
-              message: 'We\'ll automatically detect subscriptions from your transactions',
+              message: 'We\'ll automatically detect subscriptions from your transactions, or you can add them manually.',
               action: FilledButton.icon(
-                onPressed: () {
-                  // TODO: Run detection
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Detection coming soon')),
-                  );
-                },
-                icon: const Icon(Icons.refresh),
-                label: const Text('Scan for Subscriptions'),
+                onPressed: _showAddSheet,
+                icon: const Icon(Icons.add),
+                label: const Text('Add Manually'),
               ),
             );
           }

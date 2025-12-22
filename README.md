@@ -4,9 +4,11 @@
 
 # PennyPilot 💸
 
-[![FOSS](https://img.shields.io/badge/FOSS-Free%20and%20Open%20Source-brightgreen?style=for-the-badge)](LICENSE)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
-[![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white)](https://flutter.dev)
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/FOSS-Free%20and%20Open%20Source-brightgreen?style=for-the-badge" alt="FOSS"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License: MIT"></a>
+  <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white" alt="Flutter"></a>
+</p>
 
 PennyPilot is a **100% Free and Open Source (FOSS)**, local-first, privacy-focused personal finance tracker built with Flutter. It automatically scans your emails (Gmail, etc.) for receipts and subscriptions, extracting financial data locally on your device without ever sending your sensitive email content to a cloud server.
 

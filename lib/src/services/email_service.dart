@@ -233,23 +233,34 @@ class EmailService {
     // Remove style and script tags first
     var processed = html.replaceAll(RegExp(r'<(style|script)[^<>]*>.*?</\1>', multiLine: true, caseSensitive: false, dotAll: true), '');
     
-    // Replace <br> and <p> with newlines to preserve structure
+    // Replace <br>, <p>, <div>, <tr> with newlines to preserve structure
     processed = processed.replaceAll(RegExp(r'<(br|p|div|tr)[^>]*>', caseSensitive: false), '\n');
+    
+    // Replace <td> and <th> with tabs or spaces to preserve column structure
+    processed = processed.replaceAll(RegExp(r'<(td|th)[^>]*>', caseSensitive: false), '  ');
     
     // Remove all other tags
     processed = processed.replaceAll(RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true), ' ');
     
-    // Decode HTML entities (basic ones)
+    // Decode HTML entities
     processed = processed
         .replaceAll('&nbsp;', ' ')
         .replaceAll('&amp;', '&')
         .replaceAll('&lt;', '<')
         .replaceAll('&gt;', '>')
         .replaceAll('&quot;', '"')
-        .replaceAll('&apos;', "'");
+        .replaceAll('&apos;', "'")
+        .replaceAll('&#36;', '\$')
+        .replaceAll('&#163;', '£')
+        .replaceAll('&#128;', '€');
         
-    // Collapse multiple spaces/newlines
-    return processed.replaceAll(RegExp(r'\s+'), ' ').trim();
+    // Collapse multiple horizontal spaces but preserve newlines
+    processed = processed.replaceAll(RegExp(r'[ \t]+'), ' ');
+    
+    // Collapse multiple newlines to max 2
+    processed = processed.replaceAll(RegExp(r'\n\s*\n'), '\n\n');
+    
+    return processed.trim();
   }
   
   String? _findPart(MessagePart part, String mimeType) {

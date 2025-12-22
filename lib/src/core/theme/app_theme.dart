@@ -191,15 +191,25 @@ class AppTheme {
   }
 
   /// Generate dark theme with optional dynamic colors
-  static ThemeData darkTheme(ColorScheme? dynamicColorScheme) {
-    final scheme = dynamicColorScheme ?? ColorScheme.fromSeed(
+  static ThemeData darkTheme(ColorScheme? dynamicColorScheme, {bool isOled = false}) {
+    var scheme = dynamicColorScheme ?? ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: Brightness.dark,
     );
+    
+    if (isOled) {
+      scheme = scheme.copyWith(
+        surface: Colors.black,
+        background: Colors.black,
+        surfaceContainerLow: const Color(0xFF0A0A0A),
+        surfaceContainerHighest: const Color(0xFF121212),
+      );
+    }
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
+      scaffoldBackgroundColor: isOled ? Colors.black : scheme.surface,
       textTheme: _buildTextTheme(scheme, Brightness.dark),
       
       // AppBar theming
@@ -207,9 +217,9 @@ class AppTheme {
         centerTitle: true,
         elevation: 0,
         scrolledUnderElevation: 3,
-        backgroundColor: scheme.surface,
+        backgroundColor: isOled ? Colors.black : scheme.surface,
         foregroundColor: scheme.onSurface,
-        surfaceTintColor: scheme.surfaceTint,
+        surfaceTintColor: isOled ? Colors.transparent : scheme.surfaceTint,
       ),
 
       // Card theming
@@ -217,9 +227,10 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
+          side: isOled ? BorderSide(color: scheme.outlineVariant.withOpacity(0.5), width: 0.5) : BorderSide.none,
         ),
         clipBehavior: Clip.antiAlias,
-        color: scheme.surfaceContainerLow,
+        color: isOled ? const Color(0xFF0A0A0A) : scheme.surfaceContainerLow,
       ),
 
       // Elevated button theming

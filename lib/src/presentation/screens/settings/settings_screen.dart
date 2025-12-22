@@ -7,12 +7,20 @@ import 'package:pennypilot/src/presentation/providers/theme_provider.dart';
 import 'package:pennypilot/src/presentation/providers/email_provider.dart';
 import 'package:pennypilot/src/presentation/providers/auth_provider.dart';
 import 'package:pennypilot/src/presentation/screens/settings/manage_accounts_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  int _aboutTapCount = 0;
+
+  @override
+  Widget build(BuildContext context) {
     final connectedEmails = ref.watch(authServiceProvider).connectedEmails;
     return Scaffold(
       appBar: AppBar(
@@ -50,11 +58,21 @@ class SettingsScreen extends ConsumerWidget {
                   icon: Icon(Icons.brightness_auto),
                 ),
               ],
-              selected: {ref.watch(themeModeProvider)},
+              selected: {ref.watch(themeModeProvider).mode},
               onSelectionChanged: (Set<ThemeMode> newSelection) {
                 ref.read(themeModeProvider.notifier).setThemeMode(newSelection.first);
               },
             ),
+          ),
+          const SizedBox(height: 16),
+          SwitchListTile(
+            title: const Text('Pitch Black OLED'),
+            subtitle: const Text('Completely black background for OLED screens'),
+            value: ref.watch(themeModeProvider).isOledMode,
+            onChanged: (bool value) {
+              ref.read(themeModeProvider.notifier).setOledMode(value);
+            },
+            secondary: const Icon(Icons.auto_awesome),
           ),
           
           const Divider(height: 32),
@@ -143,7 +161,20 @@ class SettingsScreen extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.info),
             title: const Text('About PennyPilot'),
-            subtitle: const Text('Version alpha1.0'),
+            subtitle: Text(
+              'Version alpha.1.1${_aboutTapCount == 1 ? ' (Press 2 more to open GitHub)' : _aboutTapCount == 2 ? ' (Press 1 more to open GitHub)' : ''}',
+            ),
+            onTap: () {
+              setState(() {
+                _aboutTapCount++;
+              });
+              if (_aboutTapCount >= 3) {
+                setState(() {
+                  _aboutTapCount = 0;
+                });
+                launchUrl(Uri.parse('https://github.com/Its-Juice/PennyPilot'), mode: LaunchMode.externalApplication);
+              }
+            },
           ),
         ],
       ),

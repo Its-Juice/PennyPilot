@@ -1,5 +1,0 @@
-lib/src/services/auth_service.dart:80:      rethrow;
-lib/src/services/backup_service.dart:26:      rethrow;
-lib/src/services/backup_service.dart:50:      rethrow;
-lib/src/services/advanced_auth_service.dart:136:      rethrow;
-lib/src/services/advanced_auth_service.dart:172:      rethrow;

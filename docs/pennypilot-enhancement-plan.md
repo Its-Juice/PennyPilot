@@ -16,9 +16,9 @@ This document outlines the roadmap for improving PennyPilot, focusing on stabili
 *Goal: Improve the "Intelligence" in PennyPilot.*
 
 - [ ] **On-Device LLM Integration**: Integrate a lightweight, on-device model (e.g., MediaPipe LLM Inference with Gemma-2b) for extracting merchants and amounts from email bodies.
-- [ ] **Deterministic Fallbacks**: Improve the regex-based extraction for common providers (Uber, Amazon, Netflix) to ensure 100% accuracy for major merchants.
+- [x] **Deterministic Fallbacks**: Improve the regex-based extraction for common providers (Uber, Amazon, Netflix) to ensure 100% accuracy for major merchants.
 - [ ] **Subscription Detection**: Implement logic to categorize recurring transactions and predict next billing dates.
-- [ ] **HTML Cleaning**: Refine the HTML-to-Text stripping logic to handle complex email layouts (tables, nested divs) more reliably.
+- [x] **HTML Cleaning**: Refine the HTML-to-Text stripping logic to handle complex email layouts (tables, nested divs) more reliably.
 
 ## 🔵 Phase 3: Premium UI/UX (Experience)
 *Goal: Make the app feel like a top-tier Material 3 application.*

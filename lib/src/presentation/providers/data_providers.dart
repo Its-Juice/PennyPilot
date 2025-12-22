@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:pennypilot/src/data/local/database_service.dart';
 import 'package:pennypilot/src/data/models/transaction_model.dart';
+import 'package:pennypilot/src/data/models/category_model.dart';
 import 'package:pennypilot/src/data/models/subscription_model.dart';
 import 'package:pennypilot/src/services/merchant_normalization_service.dart';
 import 'package:pennypilot/src/services/subscription_intelligence_service.dart';
@@ -70,6 +70,16 @@ final subscriptionStatsProvider = FutureProvider<Map<String, dynamic>>((ref) asy
 final transactionCountProvider = FutureProvider<int>((ref) async {
   final isar = ref.watch(isarProvider);
   return await isar.transactionModels.count();
+});
+
+// Categories stream provider
+final categoriesProvider = StreamProvider<List<CategoryModel>>((ref) {
+  final isar = ref.watch(isarProvider);
+  
+  return isar.categoryModels
+      .where()
+      .sortByOrder()
+      .watch(fireImmediately: true);
 });
 
 // Recent transactions (last 30 days)

@@ -16,7 +16,7 @@ class PennyPilotApp extends ConsumerWidget {
     final appState = ref.watch(appStateProvider);
     final hasCompletedOnboarding = appState.hasCompletedOnboarding;
     
-    final themeMode = ref.watch(themeModeProvider);
+    final themeState = ref.watch(themeModeProvider);
 
     return DynamicColorBuilder(
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
@@ -24,8 +24,8 @@ class PennyPilotApp extends ConsumerWidget {
           title: 'PennyPilot',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme(lightDynamic),
-          darkTheme: AppTheme.darkTheme(darkDynamic),
-          themeMode: themeMode,
+          darkTheme: AppTheme.darkTheme(darkDynamic, isOled: themeState.isOledMode),
+          themeMode: themeState.mode,
           home: hasCompletedOnboarding ? const DashboardScreen() : const OnboardingScreen(),
         );
       },

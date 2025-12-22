@@ -163,7 +163,6 @@ class AuthService extends ChangeNotifier {
           'code': code,
           'grant_type': 'authorization_code',
           'redirect_uri': redirectUri,
-          'redirect_uri': redirectUri,
           'client_secret': clientId.secret ?? '',
         },
       );
@@ -324,11 +323,10 @@ class AuthService extends ChangeNotifier {
         } catch (e) {
           _logger.warning('Mobile silent sign-in failed', e);
         }
+      } else if (!_isMobile) {
         // Desktop Restore
         try {
-          // On desktop, we can restore the LAST used account as the active one,
-          // but we should technically be able to switch.
-          // For now, if we have emails, try to restore the first one as active.
+          // On desktop, we try to restore the first email from the connected list as the "active" client
           if (_connectedEmails.isNotEmpty) {
             final firstEmail = _connectedEmails.first;
             final credsJson = await _storage.read(key: 'desktop_credentials_$firstEmail');

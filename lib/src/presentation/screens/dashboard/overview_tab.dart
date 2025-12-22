@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pennypilot/src/presentation/providers/data_providers.dart';
 import 'package:pennypilot/src/presentation/providers/email_provider.dart';
 import 'package:pennypilot/src/data/models/transaction_model.dart';
+import 'package:pennypilot/src/data/models/category_model.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 
 class OverviewTab extends ConsumerWidget {
@@ -12,8 +14,9 @@ class OverviewTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final transactionsAsync = ref.watch(recentTransactionsProvider); // recent = last 30 days
+    final transactionsAsync = ref.watch(recentTransactionsProvider);
     final subscriptionsAsync = ref.watch(activeSubscriptionsProvider);
+    final categoriesAsync = ref.watch(categoriesProvider);
     final currencyFormat = NumberFormat.simpleCurrency();
 
     return Scaffold(
@@ -59,52 +62,41 @@ class OverviewTab extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Last 30 Days',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            // Total Spend Card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    Text(
-                      'Total Spent',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    transactionsAsync.when(
-                      data: (transactions) {
-                        final total = transactions.fold<double>(0, (sum, t) => sum + t.amount);
-                        return Text(
-                          currencyFormat.format(total),
-                          style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                        );
-                      },
-                      loading: () => const CircularProgressIndicator(),
-                      error: (e, s) => Text('Error: $e'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            _buildBalanceHeader(context, transactionsAsync, currencyFormat),
             const SizedBox(height: 24),
+            
+            _buildCategoriesScroller(context, transactionsAsync, categoriesAsync),
+            const SizedBox(height: 24),
+
             Text(
-              'Recent Transactions',
+              'Spending Pulse',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
+            _buildPulseChart(context, transactionsAsync),
+            const SizedBox(height: 24),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Recent Transactions',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                TextButton(
+                  onPressed: () {
+                    // Navigation handled by TabController in Dashboard
+                  },
+                  child: const Text('View All'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
             transactionsAsync.when(
               data: (transactions) {
                 if (transactions.isEmpty) {
-                  return const Text('No recent transactions found.');
+                  return _buildEmptyTransactions(context);
                 }
-                // Show top 5
                 final displayTransactions = transactions.take(5).toList();
                 return ListView.builder(
                   shrinkWrap: true,
@@ -113,10 +105,17 @@ class OverviewTab extends ConsumerWidget {
                   itemBuilder: (context, index) {
                     final t = displayTransactions[index];
                     return ListTile(
-                      leading: CircleAvatar(child: Text(t.merchantName[0].toUpperCase())),
+                      contentPadding: EdgeInsets.zero,
+                      leading: CircleAvatar(
+                        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+                        child: Text(t.merchantName[0].toUpperCase()),
+                      ),
                       title: Text(t.merchantName),
                       subtitle: Text(DateFormat.yMMMd().format(t.date)),
-                      trailing: Text(currencyFormat.format(t.amount)),
+                      trailing: Text(
+                        currencyFormat.format(t.amount),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     );
                   },
                 );
@@ -133,9 +132,13 @@ class OverviewTab extends ConsumerWidget {
             subscriptionsAsync.when(
               data: (subscriptions) {
                 if (subscriptions.isEmpty) {
-                   return const Text('No active subscriptions.');
+                   return const Card(
+                     child: Padding(
+                       padding: EdgeInsets.all(16.0),
+                       child: Text('No active subscriptions detected.'),
+                     ),
+                   );
                 }
-                // Sort by next renewal roughly (already sorted by provider? yes sortByNextRenewalDate)
                 final topSubs = subscriptions.take(3).toList();
                 
                 return ListView.builder(
@@ -144,12 +147,16 @@ class OverviewTab extends ConsumerWidget {
                   itemCount: topSubs.length,
                   itemBuilder: (context, index) {
                     final s = topSubs[index];
-                    final daysUntil = s.nextRenewalDate.difference(DateTime.now()).inDays + 1; // approx
+                    final daysUntil = s.nextRenewalDate.difference(DateTime.now()).inDays + 1;
                     return ListTile(
+                      contentPadding: EdgeInsets.zero,
                       leading: const CircleAvatar(child: Icon(Icons.event_repeat)),
                       title: Text(s.serviceName),
                       subtitle: Text('Renewing in ${daysUntil > 0 ? daysUntil : 0} days'),
-                      trailing: Text(currencyFormat.format(s.amount)),
+                      trailing: Text(
+                        currencyFormat.format(s.amount),
+                        style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w600),
+                      ),
                     );
                   },
                 );
@@ -157,6 +164,178 @@ class OverviewTab extends ConsumerWidget {
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, s) => Text('Error loading subscriptions: $e'),
             ),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBalanceHeader(BuildContext context, AsyncValue<List<TransactionModel>> transactionsAsync, NumberFormat format) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'MONTHLY SPEND',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.7),
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                Icon(Icons.trending_up, color: Theme.of(context).colorScheme.primary),
+              ],
+            ),
+            const SizedBox(height: 8),
+            transactionsAsync.when(
+              data: (transactions) {
+                final total = transactions.fold<double>(0, (sum, t) => sum + t.amount);
+                return Text(
+                  format.format(total),
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                );
+              },
+              loading: () => const CircularProgressIndicator(),
+              error: (e, s) => const Text('---'),
+            ),
+            const SizedBox(height: 16),
+            const Row(
+              children: [
+                Icon(Icons.check_circle, size: 16, color: Colors.green),
+                SizedBox(width: 4),
+                Text('All data local & encrypted', style: TextStyle(fontSize: 12)),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoriesScroller(BuildContext context, AsyncValue<List<TransactionModel>> transactionsAsync, AsyncValue<List<CategoryModel>> categoriesAsync) {
+    return categoriesAsync.when(
+      data: (categories) => transactionsAsync.when(
+        data: (transactions) {
+          final catMap = <int, double>{};
+          for (final t in transactions) {
+            if (t.categoryId != null) {
+              catMap[t.categoryId!] = (catMap[t.categoryId!] ?? 0) + t.amount;
+            }
+          }
+          
+          final activeCats = categories.where((c) => catMap.containsKey(c.id)).toList()
+            ..sort((a, b) => (catMap[b.id] ?? 0).compareTo(catMap[a.id] ?? 0));
+
+          if (activeCats.isEmpty) return const SizedBox.shrink();
+
+          return SizedBox(
+            height: 100,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: activeCats.length,
+              itemBuilder: (context, index) {
+                final cat = activeCats[index];
+                final amount = catMap[cat.id]!;
+                return Container(
+                  width: 120,
+                  margin: const EdgeInsets.only(right: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(cat.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold), maxLines: 1),
+                      const SizedBox(height: 4),
+                      Text(NumberFormat.compactCurrency(symbol: '\$').format(amount), style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+                    ],
+                  ),
+                );
+              },
+            ),
+          );
+        },
+        loading: () => const SizedBox.shrink(),
+        error: (e, s) => const SizedBox.shrink(),
+      ),
+      loading: () => const SizedBox.shrink(),
+      error: (e, s) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildPulseChart(BuildContext context, AsyncValue<List<TransactionModel>> transactionsAsync) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SizedBox(
+          height: 120,
+          child: transactionsAsync.when(
+            data: (transactions) {
+              final daily = <int, double>{};
+              final now = DateTime.now();
+              for (int i = 0; i < 7; i++) {
+                final d = now.subtract(Duration(days: i));
+                daily[d.day] = 0;
+              }
+              for (final t in transactions) {
+                if (daily.containsKey(t.date.day)) {
+                  daily[t.date.day] = (daily[t.date.day] ?? 0) + t.amount;
+                }
+              }
+              final data = daily.entries.toList().reversed.toList();
+              
+              return BarChart(
+                BarChartData(
+                  maxY: data.isEmpty ? 100 : (data.map((e) => e.value).reduce((a, b) => a > b ? a : b) * 1.2).clamp(100, double.infinity),
+                  barGroups: data.asMap().entries.map((e) => BarChartGroupData(
+                    x: e.key,
+                    barRods: [
+                      BarChartRodData(
+                        toY: e.value.value,
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 12,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ],
+                  )).toList(),
+                  titlesData: const FlTitlesData(show: false),
+                  gridData: const FlGridData(show: false),
+                  borderData: FlBorderData(show: false),
+                ),
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, s) => const Center(child: Text('Chart error')),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyTransactions(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Column(
+          children: [
+            Icon(Icons.receipt_long_outlined, size: 48, color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
+            const SizedBox(height: 16),
+            const Text('No transactions yet.', style: TextStyle(fontWeight: FontWeight.w500)),
+            const SizedBox(height: 4),
+            Text('Scan your email to begin.', style: Theme.of(context).textTheme.bodySmall),
           ],
         ),
       ),

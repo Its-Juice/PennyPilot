@@ -5,7 +5,7 @@
   "packages": [
     {
       "name": "pennypilot",
-      "version": "1.0.0-alpha1.0",
+      "version": "1.0.0-alpha1.1",
       "dependencies": [
         "cupertino_icons",
         "dynamic_color",

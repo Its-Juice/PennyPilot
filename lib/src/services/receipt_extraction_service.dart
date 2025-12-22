@@ -72,7 +72,7 @@ class ReceiptExtractionService {
     final trustList = {
       'uber.com': 'Uber',
       'lyft.com': 'Lyft',
-      'amazon.com': 'Amazon',
+      'amazon': 'Amazon',
       'steampowered.com': 'Steam',
       'netflix.com': 'Netflix',
       'spotify.com': 'Spotify',
@@ -89,6 +89,32 @@ class ReceiptExtractionService {
       'heroku.com': 'Heroku',
       'vercel.com': 'Vercel',
       'github.com': 'GitHub',
+      'stripe.com': 'Stripe',
+      'paypal.com': 'PayPal',
+      'ebay.com': 'eBay',
+      'walmart.com': 'Walmart',
+      'target.com': 'Target',
+      'bestbuy.com': 'Best Buy',
+      'costco.com': 'Costco',
+      'bolt.eu': 'Bolt',
+      'wolt.com': 'Wolt',
+      'foodpanda': 'Foodpanda',
+      'airbnb.com': 'Airbnb',
+      'booking.com': 'Booking.com',
+      'expedia.com': 'Expedia',
+      'delta.com': 'Delta Air Lines',
+      'united.com': 'United Airlines',
+      'ryanair.com': 'Ryanair',
+      'easyjet.com': 'EasyJet',
+      'openai.com': 'OpenAI',
+      'anthropic.com': 'Anthropic',
+      'midjourney.com': 'Midjourney',
+      'adobe.com': 'Adobe',
+      'zoom.us': 'Zoom',
+      'slack.com': 'Slack',
+      'atlassian.com': 'Atlassian',
+      'figma.com': 'Figma',
+      'canva.com': 'Canva',
     };
 
     for (final entry in trustList.entries) {
@@ -103,10 +129,13 @@ class ReceiptExtractionService {
     // 2. Try to extract from sender display name
     final nameAndEmailMatch = RegExp(r'^"?([^"<]+)"?\s*<([^>]+)>').firstMatch(sender);
     if (nameAndEmailMatch != null) {
-      final displayName = nameAndEmailMatch.group(1)!.trim();
+      var displayName = nameAndEmailMatch.group(1)!.trim();
+      // Clean up quotes
+      displayName = displayName.replaceAll('"', '').replaceAll("'", '').trim();
+      
       if (displayName.isNotEmpty && 
           !displayName.contains('@') && 
-          !['no-reply', 'noreply', 'support', 'billing', 'customer'].contains(displayName.toLowerCase())) {
+          !['no-reply', 'noreply', 'support', 'billing', 'customer', 'notifications', 'orders'].contains(displayName.toLowerCase())) {
         return MerchantExtraction(
           name: displayName,
           confidence: ConfidenceLevel.medium,
@@ -123,6 +152,7 @@ class ReceiptExtractionService {
       RegExp(r'invoice from (.*)', caseSensitive: false),
       RegExp(r'your (.*) invoice', caseSensitive: false),
       RegExp(r'payment to (.*)', caseSensitive: false),
+      RegExp(r'^Order #\d+ at (.*)$', caseSensitive: false),
     ];
 
     for (var pattern in subjectPatterns) {
@@ -131,7 +161,7 @@ class ReceiptExtractionService {
         var name = match.group(1)!.split('|')[0].split('-')[0].trim();
         name = name.replaceAll(RegExp(r'\s*#\d+.*$'), '').trim();
         
-        if (name.isNotEmpty) {
+        if (name.isNotEmpty && name.length < 50) {
           return MerchantExtraction(
             name: name,
             confidence: ConfidenceLevel.high,
@@ -144,7 +174,7 @@ class ReceiptExtractionService {
     final domainMatch = RegExp(r'@([a-zA-Z0-9-]+)\.').firstMatch(senderLower);
     if (domainMatch != null) {
       final domain = domainMatch.group(1)!;
-      if (!['gmail', 'yahoo', 'outlook', 'hotmail', 'icloud', 'me', 'live', 'msn'].contains(domain)) {
+      if (!['gmail', 'yahoo', 'outlook', 'hotmail', 'icloud', 'me', 'live', 'msn', 'protonmail', 'zoho'].contains(domain)) {
         return MerchantExtraction(
           name: _capitalize(domain),
           confidence: ConfidenceLevel.medium,
@@ -161,40 +191,63 @@ class ReceiptExtractionService {
   /// Extract amounts from email body
   AmountExtraction _extractAmounts(String body, String subject) {
     final extraction = AmountExtraction();
+    
+    // Support for multiple currencies: $, €, £, or currency codes like USD, EUR, GBP
+    const currencyPattern = r'(?:\$|€|£|USD|EUR|GBP|total\s*(?:amount)?\D{0,3})';
+    const amountValPattern = r'([0-9,]+\.[0-9]{2})';
 
     // 1. Look for total amount in body with broader patterns
     final totalPatterns = [
-      RegExp(r'total:?\s*\$?([0-9,]+\.[0-9]{2})', caseSensitive: false),
-      RegExp(r'amount:?\s*\$?([0-9,]+\.[0-9]{2})', caseSensitive: false),
-      RegExp(r'grand total:?\s*\$?([0-9,]+\.[0-9]{2})', caseSensitive: false),
-      RegExp(r'order total:?\s*\$?([0-9,]+\.[0-9]{2})', caseSensitive: false),
-      RegExp(r'payment\s+(?:of|amount):?\s*\$?([0-9,]+\.[0-9]{2})', caseSensitive: false),
-      RegExp(r'charged:?\s*\$?([0-9,]+\.[0-9]{2})', caseSensitive: false),
-      RegExp(r'total\s+due:?\s*\$?([0-9,]+\.[0-9]{2})', caseSensitive: false),
-      RegExp(r'price:?\s*\$?([0-9,]+\.[0-9]{2})', caseSensitive: false),
+      RegExp('$currencyPattern\\s*$amountValPattern', caseSensitive: false),
+      RegExp(r'total:?\s*(?:\$|€|£)?\s*([0-9,]+\.[0-9]{2})', caseSensitive: false),
+      RegExp(r'amount:?\s*(?:\$|€|£)?\s*([0-9,]+\.[0-9]{2})', caseSensitive: false),
+      RegExp(r'grand total:?\s*(?:\$|€|£)?\s*([0-9,]+\.[0-9]{2})', caseSensitive: false),
+      RegExp(r'order total:?\s*(?:\$|€|£)?\s*([0-9,]+\.[0-9]{2})', caseSensitive: false),
+      RegExp(r'charged:?\s*(?:\$|€|£)?\s*([0-9,]+\.[0-9]{2})', caseSensitive: false),
+      RegExp(r'total\s+(?:due|paid|amount):?\s*(?:\$|€|£)?\s*([0-9,]+\.[0-9]{2})', caseSensitive: false),
+      RegExp(r'summary\s+total:?\s*(?:\$|€|£)?\s*([0-9,]+\.[0-9]{2})', caseSensitive: false),
     ];
 
+    double bestTotal = 0.0;
+    
+    // Check subject first as it's often high signal
+    final subjectAmount = RegExp(r'(?:\$|€|£)\s*([0-9,]+\.[0-9]{2})').firstMatch(subject);
+    if (subjectAmount != null) {
+      bestTotal = _parseAmount(subjectAmount.group(1)!);
+      extraction.confidence = ConfidenceLevel.medium;
+    }
+
     for (var pattern in totalPatterns) {
-      final match = pattern.firstMatch(body);
-      if (match != null) {
-        extraction.total = _parseAmount(match.group(1)!);
-        extraction.confidence = ConfidenceLevel.high;
-        break;
+      final matches = pattern.allMatches(body);
+      if (matches.isNotEmpty) {
+        // Take the LAST match for "Total" usually, as it appears near the bottom
+        final lastMatch = matches.last;
+        final val = _parseAmount(lastMatch.group(1)!);
+        if (val > 0) {
+          extraction.total = val;
+          extraction.confidence = ConfidenceLevel.high;
+          break; 
+        }
       }
     }
 
-    // 2. Heuristic: Look for the LARGEST amount in the body if it follows a "total" keyword
-    // This handles cases where "Total" appears twice but the final one is the real one.
+    if (extraction.total == 0 && bestTotal > 0) {
+      extraction.total = bestTotal;
+    }
+
+    // 2. Heuristic: Look for the LARGEST amount in the body if it's near "Total" or at bottom
     if (extraction.total == 0) {
-      final allAmounts = RegExp(r'\$?([0-9,]+\.[0-9]{2})').allMatches(body);
+      final allAmounts = RegExp(r'(?:\$|€|£)\s*([0-9,]+\.[0-9]{2})|([0-9,]+\.[0-9]{2})\s*(?:\$|€|£|USD|EUR|GBP)').allMatches(body);
       if (allAmounts.isNotEmpty) {
         double maxAmount = 0;
         for (var m in allAmounts) {
-          final amt = _parseAmount(m.group(1)!);
-          if (amt > maxAmount) maxAmount = amt;
+          final amtStr = m.group(1) ?? m.group(2);
+          if (amtStr != null) {
+            final amt = _parseAmount(amtStr);
+            if (amt > maxAmount) maxAmount = amt;
+          }
         }
         
-        // Only use max amount if the context suggests a receipt
         if (maxAmount > 0 && (body.toLowerCase().contains('total') || subject.toLowerCase().contains('receipt'))) {
           extraction.total = maxAmount;
           extraction.confidence = ConfidenceLevel.medium;
@@ -202,78 +255,52 @@ class ReceiptExtractionService {
       }
     }
 
-    // Look for subtotal
-    final subtotalMatch = RegExp(
-      r'subtotal:?\s*\$?([0-9,]+\.[0-9]{2})',
-      caseSensitive: false,
-    ).firstMatch(body);
-    if (subtotalMatch != null) {
-      extraction.subtotal = _parseAmount(subtotalMatch.group(1)!);
-    }
-
-    // Look for tax
-    final taxMatch = RegExp(
-      r'(?:sales\s+)?tax:?\s*\$?([0-9,]+\.[0-9]{2})',
-      caseSensitive: false,
-    ).firstMatch(body);
-    if (taxMatch != null) {
-      extraction.tax = _parseAmount(taxMatch.group(1)!);
-    }
-
-    // Look for discount
-    final discountPatterns = [
-      RegExp(r'discount:?\s*-?\$?([0-9,]+\.[0-9]{2})', caseSensitive: false),
-      RegExp(r'savings:?\s*-?\$?([0-9,]+\.[0-9]{2})', caseSensitive: false),
-      RegExp(r'promo:?\s*-?\$?([0-9,]+\.[0-9]{2})', caseSensitive: false),
-    ];
-    for (var pattern in discountPatterns) {
-      final match = pattern.firstMatch(body);
-      if (match != null) {
-        extraction.discount = _parseAmount(match.group(1)!);
-        break;
-      }
-    }
-
-    // Look for tip
-    final tipMatch = RegExp(
-      r'(?:tip|gratuity):?\s*\$?([0-9,]+\.[0-9]{2})',
-      caseSensitive: false,
-    ).firstMatch(body);
-    if (tipMatch != null) {
-      extraction.tip = _parseAmount(tipMatch.group(1)!);
-    }
-
-    // If no total found, try subject line
-    if (extraction.total == 0.0) {
-      final subjectAmount = RegExp(r'\$([0-9,]+\.[0-9]{2})').firstMatch(subject);
-      if (subjectAmount != null) {
-        extraction.total = _parseAmount(subjectAmount.group(1)!);
-        extraction.confidence = ConfidenceLevel.medium;
-      }
-    }
+    // Look for subtotal/tax/discount/tip
+    extraction.subtotal = _extractValueNear(body, ['subtotal', 'sub-total', 'items total']);
+    extraction.tax = _extractValueNear(body, ['tax', 'vat', 'gst', 'sales tax']);
+    extraction.discount = _extractValueNear(body, ['discount', 'promo', 'savings', 'coupon', 'off']);
+    extraction.tip = _extractValueNear(body, ['tip', 'gratuity']);
 
     return extraction;
   }
 
+  double? _extractValueNear(String body, List<String> keywords) {
+    for (var kw in keywords) {
+      final pattern = RegExp('$kw:?\\s*(?:\\\$|€|£)?\\s*(-?[0-9,]+\\.[0-9]{2})', caseSensitive: false);
+      final match = pattern.firstMatch(body);
+      if (match != null) {
+        return _parseAmount(match.group(1)!);
+      }
+    }
+    return null;
+  }
+
   /// Extract date from email
   DateExtraction _extractDate(String body, String subject) {
-    // Try common date patterns
+    // Try to find dates in both subject and body, subject often has the actual "Order Date"
+    final searchArea = '$subject\n$body';
+    
     final datePatterns = [
-      RegExp(r'(\d{1,2})/(\d{1,2})/(\d{4})'), // MM/DD/YYYY
+      RegExp(r'(\d{1,2})/(\d{1,2})/(\d{2,4})'), // MM/DD/YYYY or DD/MM/YYYY
       RegExp(r'(\d{4})-(\d{2})-(\d{2})'), // YYYY-MM-DD
-      RegExp(r'(\w+)\s+(\d{1,2}),\s+(\d{4})'), // Month DD, YYYY
+      RegExp(r'(\w{3,9})\s+(\d{1,2}),?\s+(\d{4})'), // Month DD, YYYY
+      RegExp(r'(\d{1,2})\s+(\w{3,9})\s+(\d{4})'), // DD Month YYYY
+      RegExp(r'(\d{1,2})-(\w{3,9})-(\d{4})'), // DD-Mon-YYYY
     ];
 
     for (var pattern in datePatterns) {
-      final match = pattern.firstMatch(body);
-      if (match != null) {
+      final matches = pattern.allMatches(searchArea);
+      for (var match in matches) {
         try {
           final date = _parseDate(match.group(0)!);
           if (date != null) {
-            return DateExtraction(
-              date: date,
-              confidence: ConfidenceLevel.high,
-            );
+            // Basic sanity check: date shouldn't be in the far future
+            if (date.isBefore(DateTime.now().add(const Duration(days: 1)))) {
+              return DateExtraction(
+                date: date,
+                confidence: ConfidenceLevel.high,
+              );
+            }
           }
         } catch (e) {
           _logger.fine('Failed to parse date: ${match.group(0)}');
@@ -348,13 +375,57 @@ class ReceiptExtractionService {
   /// Parse date string to DateTime
   DateTime? _parseDate(String dateStr) {
     try {
-      // Try ISO format first
-      return DateTime.parse(dateStr);
+      final cleaned = dateStr.replaceAll(RegExp(r'\s+'), ' ').trim();
+      
+      // 1. Try ISO format
+      if (RegExp(r'^\d{4}-\d{2}-\d{2}').hasMatch(cleaned)) {
+        return DateTime.parse(cleaned.substring(0, 10));
+      }
+
+      // 2. Try MM/DD/YYYY or DD/MM/YYYY (assuming US if / is used and MM < 13)
+      final slashMatch = RegExp(r'(\d{1,2})/(\d{1,2})/(\d{2,4})').firstMatch(cleaned);
+      if (slashMatch != null) {
+        var day = int.parse(slashMatch.group(1)!);
+        var month = int.parse(slashMatch.group(2)!);
+        var year = int.parse(slashMatch.group(3)!);
+        if (year < 100) year += 2000;
+        
+        // Simple swap if it looks like DD/MM
+        if (day > 12 && month <= 12) {
+          final tmp = day; day = month; month = tmp;
+        }
+        
+        if (month <= 12 && day <= 31) {
+          return DateTime(year, month, day);
+        }
+      }
+
+      // 3. Try "Month DD, YYYY" or "DD Month YYYY"
+      const months = {
+        'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
+        'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
+        'january': 1, 'february': 2, 'march': 3, 'april': 4, 'june': 6,
+        'july': 7, 'august': 8, 'september': 9, 'october': 10, 'november': 11, 'december': 12,
+      };
+
+      final monthNameMatch = RegExp(r'(\w{3,9})\s+(\d{1,2}),?\s+(\d{4})|(\d{1,2})\s+(\w{3,9})\s+(\d{4})').firstMatch(cleaned);
+      if (monthNameMatch != null) {
+        String? mName = monthNameMatch.group(1) ?? monthNameMatch.group(5);
+        String? dStr = monthNameMatch.group(2) ?? monthNameMatch.group(4);
+        String? yStr = monthNameMatch.group(3) ?? monthNameMatch.group(6);
+        
+        if (mName != null && dStr != null && yStr != null) {
+          final mVal = months[mName.toLowerCase()];
+          if (mVal != null) {
+            return DateTime(int.parse(yStr), mVal, int.parse(dStr));
+          }
+        }
+      }
+
     } catch (e) {
-      // Try other formats
-      // This is simplified - real implementation would handle more formats
-      return null;
+      _logger.fine('Date parse error: $e');
     }
+    return null;
   }
 
   /// Capitalize first letter

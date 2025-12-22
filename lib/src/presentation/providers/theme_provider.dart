@@ -7,26 +7,47 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError();
 });
 
-// StateNotifier to manage ThemeMode
-class ThemeModeNotifier extends StateNotifier<ThemeMode> {
+// State for theme management
+class ThemeState {
+  final ThemeMode mode;
+  final bool isOledMode;
+
+  ThemeState({required this.mode, this.isOledMode = false});
+
+  ThemeState copyWith({ThemeMode? mode, bool? isOledMode}) {
+    return ThemeState(
+      mode: mode ?? this.mode,
+      isOledMode: isOledMode ?? this.isOledMode,
+    );
+  }
+}
+
+// StateNotifier to manage ThemeMode and OLED preference
+class ThemeModeNotifier extends StateNotifier<ThemeState> {
   final SharedPreferences prefs;
 
   ThemeModeNotifier(this.prefs) : super(_initialTheme(prefs));
 
-  static ThemeMode _initialTheme(SharedPreferences prefs) {
+  static ThemeState _initialTheme(SharedPreferences prefs) {
     final themeIndex = prefs.getInt('themeMode');
-    if (themeIndex == null) return ThemeMode.system;
-    return ThemeMode.values[themeIndex];
+    final isOled = prefs.getBool('isOledMode') ?? false;
+    final mode = themeIndex == null ? ThemeMode.system : ThemeMode.values[themeIndex];
+    return ThemeState(mode: mode, isOledMode: isOled);
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
-    state = mode;
+    state = state.copyWith(mode: mode);
     await prefs.setInt('themeMode', mode.index);
+  }
+
+  Future<void> setOledMode(bool enabled) async {
+    state = state.copyWith(isOledMode: enabled);
+    await prefs.setBool('isOledMode', enabled);
   }
 }
 
-// Global provider for ThemeMode
-final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
+// Global provider for ThemeState
+final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeState>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return ThemeModeNotifier(prefs);
 });
