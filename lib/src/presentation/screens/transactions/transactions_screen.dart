@@ -10,6 +10,8 @@ import 'package:pennypilot/src/presentation/screens/transactions/transaction_det
 import 'package:pennypilot/src/presentation/screens/transactions/add_transaction_sheet.dart';
 import 'package:pennypilot/src/data/models/transaction_model.dart';
 import 'package:intl/intl.dart';
+import 'package:pennypilot/src/presentation/providers/app_state_provider.dart';
+import 'package:pennypilot/src/presentation/screens/transactions/receipt_scan_screen.dart';
 
 class TransactionsScreen extends ConsumerStatefulWidget {
   const TransactionsScreen({super.key});
@@ -69,6 +71,16 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
             },
             tooltip: _isSearching ? 'Close Search' : 'Search',
           ),
+            IconButton(
+              icon: const Icon(Icons.document_scanner),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ReceiptScanScreen()),
+                );
+              },
+              tooltip: 'Scan Receipt',
+            ),
           if (!_isSearching)
             IconButton(
               icon: const Icon(Icons.filter_list),
@@ -319,7 +331,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
         ),
         const SizedBox(height: 4),
         Text(
-          NumberFormat.compactCurrency(symbol: '\$').format(amount.abs()),
+          NumberFormat.compactCurrency(
+            symbol: CurrencyInfo.getSymbol(ref.watch(appStateProvider).currencyCode),
+          ).format(amount.abs()),
           style: theme.textTheme.titleLarge?.copyWith(
             color: color ?? theme.colorScheme.onPrimaryContainer,
             fontWeight: FontWeight.bold,

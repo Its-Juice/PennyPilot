@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pennypilot/src/data/models/transaction_model.dart';
 import 'package:pennypilot/src/presentation/providers/transaction_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:pennypilot/src/presentation/providers/app_state_provider.dart';
 
 class EditTransactionScreen extends ConsumerStatefulWidget {
   final TransactionModel transaction;
@@ -205,7 +206,8 @@ class _EditTransactionScreenState extends ConsumerState<EditTransactionScreen> {
               decoration: InputDecoration(
                 labelText: 'Amount',
                 border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.attach_money),
+                prefixText: '${CurrencyInfo.getSymbol(widget.transaction.currency)} ',
+                prefixIcon: const Icon(Icons.payments),
                 suffix: Text(widget.transaction.currency),
               ),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),

@@ -1,0 +1,118 @@
+Resolving dependencies...
+Downloading packages...
+  _fe_analyzer_shared 61.0.0 (92.0.0 available)
+  analyzer 5.13.0 (9.0.0 available)
+  analyzer_plugin 0.11.2 (0.13.11 available)
+  build 2.4.1 (4.0.3 available)
+  build_config 1.1.2 (1.2.0 available)
+  build_resolvers 2.4.2 (3.0.4 available)
+  build_runner 2.4.13 (2.10.4 available)
+  build_runner_core 7.3.2 (9.3.2 available)
+  characters 1.4.0 (1.4.1 available)
+  custom_lint_core 0.6.3 (0.8.1 available)
+  dart_style 2.3.2 (3.1.3 available)
+  extension_google_sign_in_as_googleapis_auth 2.0.13 (3.0.0 available)
+  flutter_riverpod 2.6.1 (3.0.3 available)
+  freezed_annotation 2.4.4 (3.1.0 available)
+  google_sign_in 6.1.6 (7.2.0 available)
+  google_sign_in_android 6.2.1 (7.2.7 available)
+  google_sign_in_ios 5.9.0 (6.2.4 available)
+  google_sign_in_platform_interface 2.5.0 (3.1.0 available)
+  google_sign_in_web 0.12.4+4 (1.1.0 available)
+  js 0.6.7 (0.7.2 available)
+  json_serializable 6.8.0 (6.11.3 available)
+  matcher 0.12.17 (0.12.18 available)
+  material_color_utilities 0.11.1 (0.13.0 available)
+  riverpod 2.6.1 (3.0.3 available)
+  riverpod_analyzer_utils 0.5.1 (0.5.10 available)
+  riverpod_annotation 2.6.1 (3.0.3 available)
+  riverpod_generator 2.4.0 (3.0.3 available)
+  shelf_web_socket 2.0.1 (3.0.0 available)
+  source_gen 1.5.0 (4.1.1 available)
+  source_helper 1.3.5 (1.3.9 available)
+  test_api 0.7.7 (0.7.8 available)
+Got dependencies!
+31 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Analyzing PennyPilot...                                         
+
+   info • Don't invoke 'print' in production code • lib/main.dart:14:5 • avoid_print
+   info • 'background' is deprecated and shouldn't be used. Use surface instead. This feature was deprecated after v3.18.0-0.1.pre • lib/src/core/theme/app_theme.dart:203:9 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/core/theme/app_theme.dart:230:66 • deprecated_member_use
+  error • Expected an identifier • lib/src/presentation/providers/app_state_provider.dart:112:38 • missing_identifier
+  error • Invalid constant value • lib/src/presentation/providers/app_state_provider.dart:112:38 • invalid_constant
+  error • Expected an identifier • lib/src/presentation/providers/app_state_provider.dart:116:47 • missing_identifier
+  error • Invalid constant value • lib/src/presentation/providers/app_state_provider.dart:116:47 • invalid_constant
+  error • Expected an identifier • lib/src/presentation/providers/app_state_provider.dart:117:45 • missing_identifier
+  error • Invalid constant value • lib/src/presentation/providers/app_state_provider.dart:117:45 • invalid_constant
+  error • Expected an identifier • lib/src/presentation/providers/app_state_provider.dart:120:47 • missing_identifier
+  error • Invalid constant value • lib/src/presentation/providers/app_state_provider.dart:120:47 • invalid_constant
+  error • Expected an identifier • lib/src/presentation/providers/app_state_provider.dart:121:49 • missing_identifier
+  error • Invalid constant value • lib/src/presentation/providers/app_state_provider.dart:121:49 • invalid_constant
+  error • Expected an identifier • lib/src/presentation/providers/app_state_provider.dart:124:46 • missing_identifier
+  error • Invalid constant value • lib/src/presentation/providers/app_state_provider.dart:124:46 • invalid_constant
+  error • Expected an identifier • lib/src/presentation/providers/app_state_provider.dart:126:41 • missing_identifier
+  error • Invalid constant value • lib/src/presentation/providers/app_state_provider.dart:126:41 • invalid_constant
+  error • Expected an identifier • lib/src/presentation/providers/app_state_provider.dart:131:44 • missing_identifier
+  error • Invalid constant value • lib/src/presentation/providers/app_state_provider.dart:131:44 • invalid_constant
+   info • The import of 'package:pennypilot/src/presentation/providers/database_provider.dart' is unnecessary because all of the used elements are also provided by the import of 'package:pennypilot/src/presentation/providers/data_providers.dart' • lib/src/presentation/providers/email_provider.dart:5:8 • unnecessary_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/screens/dashboard/overview_tab.dart:184:61 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/screens/dashboard/overview_tab.dart:196:77 • deprecated_member_use
+  error • Undefined name 'ref' • lib/src/presentation/screens/dashboard/overview_tab.dart:270:111 • undefined_identifier
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/screens/dashboard/overview_tab.dart:341:102 • deprecated_member_use
+   info • 'surfaceVariant' is deprecated and shouldn't be used. Use surfaceContainerHighest instead. This feature was deprecated after v3.18.0-0.1.pre • lib/src/presentation/screens/onboarding/onboarding_screen.dart:75:66 • deprecated_member_use
+  error • The body might complete normally, causing 'null' to be returned, but the return type, 'Stream<List<CategoryModel>>', is a potentially non-nullable type • lib/src/presentation/screens/settings/category_management_screen.dart:10:70 • body_might_complete_normally
+  error • Undefined name 'yield' • lib/src/presentation/screens/settings/category_management_screen.dart:13:3 • undefined_identifier
+  error • The body might complete normally, causing 'null' to be returned, but the return type, 'Stream<List<MerchantCategoryMappingModel>>', is a potentially non-nullable type • lib/src/presentation/screens/settings/category_management_screen.dart:22:91 • body_might_complete_normally
+  error • Undefined name 'yield' • lib/src/presentation/screens/settings/category_management_screen.dart:25:3 • undefined_identifier
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/src/presentation/screens/settings/category_management_screen.dart:245:21 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/screens/settings/category_management_screen.dart:372:26 • deprecated_member_use
+  error • The body might complete normally, causing 'null' to be returned, but the return type, 'Stream<List<EmailSenderPreferenceModel>>', is a potentially non-nullable type • lib/src/presentation/screens/settings/email_scanner_controls_screen.dart:13:95 • body_might_complete_normally
+  error • Undefined name 'yield' • lib/src/presentation/screens/settings/email_scanner_controls_screen.dart:16:3 • undefined_identifier
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/screens/settings/email_scanner_controls_screen.dart:103:56 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/screens/settings/email_scanner_controls_screen.dart:114:56 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/screens/settings/email_scanner_controls_screen.dart:213:57 • deprecated_member_use
+   info • 'Share' is deprecated and shouldn't be used. Use SharePlus instead • lib/src/presentation/screens/settings/privacy_security_screen.dart:356:13 • deprecated_member_use
+   info • 'shareXFiles' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead • lib/src/presentation/screens/settings/privacy_security_screen.dart:356:19 • deprecated_member_use
+warning • The declaration '_showWipeDataDialog' isn't referenced • lib/src/presentation/screens/settings/privacy_security_screen.dart:442:8 • unused_element
+   info • The import of 'package:pennypilot/src/presentation/providers/database_provider.dart' is unnecessary because all of the used elements are also provided by the import of 'package:pennypilot/src/presentation/providers/data_providers.dart' • lib/src/presentation/screens/subscriptions/add_subscription_sheet.dart:6:8 • unnecessary_import
+   info • The private field _state could be 'final' • lib/src/presentation/screens/subscriptions/add_subscription_sheet.dart:24:30 • prefer_final_fields
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/screens/subscriptions/add_subscription_sheet.dart:124:65 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/src/presentation/screens/subscriptions/add_subscription_sheet.dart:170:21 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/src/presentation/screens/subscriptions/add_subscription_sheet.dart:189:19 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/screens/subscriptions/subscription_details_screen.dart:263:44 • deprecated_member_use
+warning • Unused import: 'package:pennypilot/src/core/utils/page_transitions.dart' • lib/src/presentation/screens/subscriptions/subscriptions_screen.dart:10:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/screens/subscriptions/subscriptions_screen.dart:229:57 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/screens/subscriptions/subscriptions_screen.dart:242:59 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/screens/transactions/add_transaction_sheet.dart:147:59 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/screens/transactions/add_transaction_sheet.dart:210:60 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/screens/transactions/add_transaction_sheet.dart:236:76 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/src/presentation/screens/transactions/add_transaction_sheet.dart:251:21 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/screens/transactions/add_transaction_sheet.dart:259:76 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/screens/transactions/add_transaction_sheet.dart:283:78 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/src/presentation/screens/transactions/edit_transaction_screen.dart:248:15 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/src/presentation/screens/transactions/edit_transaction_screen.dart:293:15 • deprecated_member_use
+   info • The 'child' argument should be last in widget constructor invocations • lib/src/presentation/screens/transactions/edit_transaction_screen.dart:399:15 • sort_child_properties_last
+warning • Unused import: 'package:pennypilot/src/presentation/screens/transactions/transactions_screen.dart' • lib/src/presentation/screens/transactions/transactions_screen.dart:8:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/screens/transactions/transactions_screen.dart:170:64 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/screens/transactions/transactions_screen.dart:187:64 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/screens/transactions/transactions_screen.dart:331:57 • deprecated_member_use
+warning • The declaration '_getMonthCount' isn't referenced • lib/src/presentation/screens/transactions/transactions_screen.dart:361:7 • unused_element
+warning • The declaration '_getHighConfidenceCount' isn't referenced • lib/src/presentation/screens/transactions/transactions_screen.dart:368:7 • unused_element
+  error • Expected an identifier • lib/src/presentation/widgets/amount_display.dart:56:16 • missing_identifier
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/widgets/confidence_badge.dart:29:26 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/widgets/confidence_badge.dart:32:28 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/widgets/confidence_badge.dart:48:22 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/widgets/confidence_badge.dart:51:24 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/widgets/lifecycle_badge.dart:29:26 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/widgets/lifecycle_badge.dart:32:28 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/widgets/lifecycle_badge.dart:48:22 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/widgets/lifecycle_badge.dart:51:24 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/src/presentation/widgets/transaction_card.dart:138:40 • deprecated_member_use
+warning • The value of the local variable 'accounts' isn't used • lib/src/services/advanced_auth_service.dart:200:11 • unused_local_variable
+   info • 'Share' is deprecated and shouldn't be used. Use SharePlus instead • lib/src/services/backup_service.dart:19:15 • deprecated_member_use
+   info • 'shareXFiles' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead • lib/src/services/backup_service.dart:19:21 • deprecated_member_use
+warning • Unused import: 'package:pennypilot/src/data/models/extraction_metadata_model.dart' • lib/src/services/receipt_extraction_service.dart:5:8 • unused_import
+warning • The value of the field '_isar' isn't used • lib/src/services/receipt_extraction_service.dart:9:14 • unused_field
+
+78 issues found. (ran in 0.8s)

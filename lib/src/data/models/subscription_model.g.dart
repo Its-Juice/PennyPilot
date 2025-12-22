@@ -84,51 +84,66 @@ const SubscriptionModelSchema = CollectionSchema(
       name: r'isTrial',
       type: IsarType.bool,
     ),
-    r'lastChargedDate': PropertySchema(
+    r'isZombie': PropertySchema(
       id: 13,
+      name: r'isZombie',
+      type: IsarType.bool,
+    ),
+    r'lastChargedDate': PropertySchema(
+      id: 14,
       name: r'lastChargedDate',
       type: IsarType.dateTime,
     ),
+    r'lastPriceHikePercent': PropertySchema(
+      id: 15,
+      name: r'lastPriceHikePercent',
+      type: IsarType.double,
+    ),
     r'lifecycleState': PropertySchema(
-      id: 14,
+      id: 16,
       name: r'lifecycleState',
       type: IsarType.byte,
       enumMap: _SubscriptionModellifecycleStateEnumValueMap,
     ),
     r'nextRenewalDate': PropertySchema(
-      id: 15,
+      id: 17,
       name: r'nextRenewalDate',
       type: IsarType.dateTime,
     ),
     r'notes': PropertySchema(
-      id: 16,
+      id: 18,
       name: r'notes',
       type: IsarType.string,
     ),
     r'priceHistoryJson': PropertySchema(
-      id: 17,
+      id: 19,
       name: r'priceHistoryJson',
       type: IsarType.string,
     ),
     r'serviceName': PropertySchema(
-      id: 18,
+      id: 20,
       name: r'serviceName',
       type: IsarType.string,
     ),
     r'trialEndDate': PropertySchema(
-      id: 19,
+      id: 21,
       name: r'trialEndDate',
       type: IsarType.dateTime,
     ),
     r'updatedAt': PropertySchema(
-      id: 20,
+      id: 22,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'userConfirmed': PropertySchema(
-      id: 21,
+      id: 23,
       name: r'userConfirmed',
       type: IsarType.bool,
+    ),
+    r'zombieReason': PropertySchema(
+      id: 24,
+      name: r'zombieReason',
+      type: IsarType.string,
     )
   },
   estimateSize: _subscriptionModelEstimateSize,
@@ -217,6 +232,12 @@ int _subscriptionModelEstimateSize(
     }
   }
   bytesCount += 3 + object.serviceName.length * 3;
+  {
+    final value = object.zombieReason;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -239,15 +260,18 @@ void _subscriptionModelSerialize(
   writer.writeByte(offsets[10], object.frequency.index);
   writer.writeLong(offsets[11], object.frequencyConsistency);
   writer.writeBool(offsets[12], object.isTrial);
-  writer.writeDateTime(offsets[13], object.lastChargedDate);
-  writer.writeByte(offsets[14], object.lifecycleState.index);
-  writer.writeDateTime(offsets[15], object.nextRenewalDate);
-  writer.writeString(offsets[16], object.notes);
-  writer.writeString(offsets[17], object.priceHistoryJson);
-  writer.writeString(offsets[18], object.serviceName);
-  writer.writeDateTime(offsets[19], object.trialEndDate);
-  writer.writeDateTime(offsets[20], object.updatedAt);
-  writer.writeBool(offsets[21], object.userConfirmed);
+  writer.writeBool(offsets[13], object.isZombie);
+  writer.writeDateTime(offsets[14], object.lastChargedDate);
+  writer.writeDouble(offsets[15], object.lastPriceHikePercent);
+  writer.writeByte(offsets[16], object.lifecycleState.index);
+  writer.writeDateTime(offsets[17], object.nextRenewalDate);
+  writer.writeString(offsets[18], object.notes);
+  writer.writeString(offsets[19], object.priceHistoryJson);
+  writer.writeString(offsets[20], object.serviceName);
+  writer.writeDateTime(offsets[21], object.trialEndDate);
+  writer.writeDateTime(offsets[22], object.updatedAt);
+  writer.writeBool(offsets[23], object.userConfirmed);
+  writer.writeString(offsets[24], object.zombieReason);
 }
 
 SubscriptionModel _subscriptionModelDeserialize(
@@ -275,17 +299,20 @@ SubscriptionModel _subscriptionModelDeserialize(
   object.frequencyConsistency = reader.readLong(offsets[11]);
   object.id = id;
   object.isTrial = reader.readBool(offsets[12]);
-  object.lastChargedDate = reader.readDateTimeOrNull(offsets[13]);
+  object.isZombie = reader.readBool(offsets[13]);
+  object.lastChargedDate = reader.readDateTimeOrNull(offsets[14]);
+  object.lastPriceHikePercent = reader.readDoubleOrNull(offsets[15]);
   object.lifecycleState = _SubscriptionModellifecycleStateValueEnumMap[
-          reader.readByteOrNull(offsets[14])] ??
+          reader.readByteOrNull(offsets[16])] ??
       SubscriptionLifecycleState.active;
-  object.nextRenewalDate = reader.readDateTime(offsets[15]);
-  object.notes = reader.readStringOrNull(offsets[16]);
-  object.priceHistoryJson = reader.readStringOrNull(offsets[17]);
-  object.serviceName = reader.readString(offsets[18]);
-  object.trialEndDate = reader.readDateTimeOrNull(offsets[19]);
-  object.updatedAt = reader.readDateTimeOrNull(offsets[20]);
-  object.userConfirmed = reader.readBool(offsets[21]);
+  object.nextRenewalDate = reader.readDateTime(offsets[17]);
+  object.notes = reader.readStringOrNull(offsets[18]);
+  object.priceHistoryJson = reader.readStringOrNull(offsets[19]);
+  object.serviceName = reader.readString(offsets[20]);
+  object.trialEndDate = reader.readDateTimeOrNull(offsets[21]);
+  object.updatedAt = reader.readDateTimeOrNull(offsets[22]);
+  object.userConfirmed = reader.readBool(offsets[23]);
+  object.zombieReason = reader.readStringOrNull(offsets[24]);
   return object;
 }
 
@@ -327,25 +354,31 @@ P _subscriptionModelDeserializeProp<P>(
     case 12:
       return (reader.readBool(offset)) as P;
     case 13:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 14:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 15:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 16:
       return (_SubscriptionModellifecycleStateValueEnumMap[
               reader.readByteOrNull(offset)] ??
           SubscriptionLifecycleState.active) as P;
-    case 15:
-      return (reader.readDateTime(offset)) as P;
-    case 16:
-      return (reader.readStringOrNull(offset)) as P;
     case 17:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 18:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 19:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 20:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 21:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 22:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 23:
       return (reader.readBool(offset)) as P;
+    case 24:
+      return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -1812,6 +1845,16 @@ extension SubscriptionModelQueryFilter
   }
 
   QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
+      isZombieEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isZombie',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
       lastChargedDateIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1881,6 +1924,90 @@ extension SubscriptionModelQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
+      lastPriceHikePercentIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastPriceHikePercent',
+      ));
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
+      lastPriceHikePercentIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastPriceHikePercent',
+      ));
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
+      lastPriceHikePercentEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastPriceHikePercent',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
+      lastPriceHikePercentGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastPriceHikePercent',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
+      lastPriceHikePercentLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastPriceHikePercent',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
+      lastPriceHikePercentBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastPriceHikePercent',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -2598,6 +2725,160 @@ extension SubscriptionModelQueryFilter
       ));
     });
   }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
+      zombieReasonIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'zombieReason',
+      ));
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
+      zombieReasonIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'zombieReason',
+      ));
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
+      zombieReasonEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'zombieReason',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
+      zombieReasonGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'zombieReason',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
+      zombieReasonLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'zombieReason',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
+      zombieReasonBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'zombieReason',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
+      zombieReasonStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'zombieReason',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
+      zombieReasonEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'zombieReason',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
+      zombieReasonContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'zombieReason',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
+      zombieReasonMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'zombieReason',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
+      zombieReasonIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'zombieReason',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterFilterCondition>
+      zombieReasonIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'zombieReason',
+        value: '',
+      ));
+    });
+  }
 }
 
 extension SubscriptionModelQueryObject
@@ -2791,6 +3072,20 @@ extension SubscriptionModelQuerySortBy
   }
 
   QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterSortBy>
+      sortByIsZombie() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isZombie', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterSortBy>
+      sortByIsZombieDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isZombie', Sort.desc);
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterSortBy>
       sortByLastChargedDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastChargedDate', Sort.asc);
@@ -2801,6 +3096,20 @@ extension SubscriptionModelQuerySortBy
       sortByLastChargedDateDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastChargedDate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterSortBy>
+      sortByLastPriceHikePercent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastPriceHikePercent', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterSortBy>
+      sortByLastPriceHikePercentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastPriceHikePercent', Sort.desc);
     });
   }
 
@@ -2913,6 +3222,20 @@ extension SubscriptionModelQuerySortBy
       sortByUserConfirmedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userConfirmed', Sort.desc);
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterSortBy>
+      sortByZombieReason() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'zombieReason', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterSortBy>
+      sortByZombieReasonDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'zombieReason', Sort.desc);
     });
   }
 }
@@ -3115,6 +3438,20 @@ extension SubscriptionModelQuerySortThenBy
   }
 
   QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterSortBy>
+      thenByIsZombie() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isZombie', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterSortBy>
+      thenByIsZombieDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isZombie', Sort.desc);
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterSortBy>
       thenByLastChargedDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastChargedDate', Sort.asc);
@@ -3125,6 +3462,20 @@ extension SubscriptionModelQuerySortThenBy
       thenByLastChargedDateDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastChargedDate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterSortBy>
+      thenByLastPriceHikePercent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastPriceHikePercent', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterSortBy>
+      thenByLastPriceHikePercentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastPriceHikePercent', Sort.desc);
     });
   }
 
@@ -3239,6 +3590,20 @@ extension SubscriptionModelQuerySortThenBy
       return query.addSortBy(r'userConfirmed', Sort.desc);
     });
   }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterSortBy>
+      thenByZombieReason() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'zombieReason', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QAfterSortBy>
+      thenByZombieReasonDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'zombieReason', Sort.desc);
+    });
+  }
 }
 
 extension SubscriptionModelQueryWhereDistinct
@@ -3336,9 +3701,23 @@ extension SubscriptionModelQueryWhereDistinct
   }
 
   QueryBuilder<SubscriptionModel, SubscriptionModel, QDistinct>
+      distinctByIsZombie() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isZombie');
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QDistinct>
       distinctByLastChargedDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'lastChargedDate');
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QDistinct>
+      distinctByLastPriceHikePercent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastPriceHikePercent');
     });
   }
 
@@ -3396,6 +3775,13 @@ extension SubscriptionModelQueryWhereDistinct
       distinctByUserConfirmed() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'userConfirmed');
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, SubscriptionModel, QDistinct>
+      distinctByZombieReason({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'zombieReason', caseSensitive: caseSensitive);
     });
   }
 }
@@ -3494,10 +3880,23 @@ extension SubscriptionModelQueryProperty
     });
   }
 
+  QueryBuilder<SubscriptionModel, bool, QQueryOperations> isZombieProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isZombie');
+    });
+  }
+
   QueryBuilder<SubscriptionModel, DateTime?, QQueryOperations>
       lastChargedDateProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastChargedDate');
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, double?, QQueryOperations>
+      lastPriceHikePercentProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastPriceHikePercent');
     });
   }
 
@@ -3553,6 +3952,13 @@ extension SubscriptionModelQueryProperty
       userConfirmedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'userConfirmed');
+    });
+  }
+
+  QueryBuilder<SubscriptionModel, String?, QQueryOperations>
+      zombieReasonProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'zombieReason');
     });
   }
 }

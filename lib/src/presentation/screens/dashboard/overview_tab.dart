@@ -6,6 +6,9 @@ import 'package:pennypilot/src/data/models/transaction_model.dart';
 import 'package:pennypilot/src/data/models/category_model.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:pennypilot/src/presentation/providers/app_state_provider.dart';
+import 'package:pennypilot/src/presentation/providers/budget_provider.dart';
+import 'package:pennypilot/src/services/budget_service.dart';
 
 class OverviewTab extends ConsumerWidget {
   final bool isDemoMode;
@@ -17,7 +20,14 @@ class OverviewTab extends ConsumerWidget {
     final transactionsAsync = ref.watch(recentTransactionsProvider);
     final subscriptionsAsync = ref.watch(activeSubscriptionsProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
-    final currencyFormat = NumberFormat.simpleCurrency();
+    final safeToSpendAsync = ref.watch(safeToSpendProvider);
+    final appCurrency = ref.watch(appStateProvider).currencyCode;
+    final currencySymbol = CurrencyInfo.getSymbol(appCurrency);
+
+    final currencyFormat = NumberFormat.currency(
+      symbol: currencySymbol,
+      decimalDigits: 2,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -63,9 +73,11 @@ class OverviewTab extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildBalanceHeader(context, transactionsAsync, currencyFormat),
+            const SizedBox(height: 16),
+            _buildSafeToSpend(context, safeToSpendAsync, currencyFormat),
             const SizedBox(height: 24),
             
-            _buildCategoriesScroller(context, transactionsAsync, categoriesAsync),
+            _buildCategoriesScroller(context, ref, transactionsAsync, categoriesAsync),
             const SizedBox(height: 24),
 
             Text(
@@ -171,6 +183,61 @@ class OverviewTab extends ConsumerWidget {
     );
   }
 
+  Widget _buildSafeToSpend(BuildContext context, AsyncValue<SafeToSpendResult> safeToSpendAsync, NumberFormat format) {
+    return safeToSpendAsync.when(
+      data: (SafeToSpendResult result) {
+        if (!result.isBudgetSet) {
+          return const SizedBox.shrink();
+        }
+        return Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
+                  child: Icon(Icons.bolt, color: Theme.of(context).colorScheme.onTertiaryContainer),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Safe-to-Spend Today',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Text(
+                        format.format(result.dailySafeAmount),
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  '${format.format(result.remainingMonthly)} left this month',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (e, s) => const SizedBox.shrink(),
+    );
+  }
+
   Widget _buildBalanceHeader(BuildContext context, AsyncValue<List<TransactionModel>> transactionsAsync, NumberFormat format) {
     return Card(
       elevation: 0,
@@ -222,7 +289,7 @@ class OverviewTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildCategoriesScroller(BuildContext context, AsyncValue<List<TransactionModel>> transactionsAsync, AsyncValue<List<CategoryModel>> categoriesAsync) {
+  Widget _buildCategoriesScroller(BuildContext context, WidgetRef ref, AsyncValue<List<TransactionModel>> transactionsAsync, AsyncValue<List<CategoryModel>> categoriesAsync) {
     return categoriesAsync.when(
       data: (categories) => transactionsAsync.when(
         data: (transactions) {
@@ -260,7 +327,7 @@ class OverviewTab extends ConsumerWidget {
                     children: [
                       Text(cat.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold), maxLines: 1),
                       const SizedBox(height: 4),
-                      Text(NumberFormat.compactCurrency(symbol: '\$').format(amount), style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+                      Text(NumberFormat.compactCurrency(symbol: CurrencyInfo.getSymbol(ref.watch(appStateProvider).currencyCode)).format(amount), style: TextStyle(color: Theme.of(context).colorScheme.primary)),
                     ],
                   ),
                 );

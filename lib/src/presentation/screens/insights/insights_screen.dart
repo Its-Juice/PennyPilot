@@ -5,6 +5,7 @@ import 'package:pennypilot/src/presentation/providers/data_providers.dart';
 import 'package:pennypilot/src/data/models/transaction_model.dart';
 import 'package:pennypilot/src/data/models/category_model.dart';
 import 'package:intl/intl.dart';
+import 'package:pennypilot/src/presentation/providers/app_state_provider.dart';
 
 class InsightsScreen extends ConsumerWidget {
   const InsightsScreen({super.key});
@@ -13,7 +14,13 @@ class InsightsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final transactionsAsync = ref.watch(transactionsProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
-    final currencyFormat = NumberFormat.simpleCurrency();
+    final appCurrency = ref.watch(appStateProvider).currencyCode;
+    final currencySymbol = CurrencyInfo.getSymbol(appCurrency);
+    
+    final currencyFormat = NumberFormat.currency(
+      symbol: currencySymbol,
+      decimalDigits: 2,
+    );
 
     return Scaffold(
       appBar: AppBar(

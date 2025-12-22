@@ -4,6 +4,7 @@ import 'package:pennypilot/src/presentation/widgets/confidence_badge.dart';
 import 'package:pennypilot/src/presentation/widgets/amount_display.dart';
 import 'package:pennypilot/src/presentation/widgets/manual_edit_badge.dart';
 import 'package:pennypilot/src/presentation/screens/transactions/edit_transaction_screen.dart';
+import 'package:pennypilot/src/presentation/screens/transactions/split_transaction_sheet.dart';
 import 'package:intl/intl.dart';
 
 class TransactionDetailsScreen extends StatelessWidget {
@@ -422,6 +423,24 @@ class TransactionDetailsScreen extends StatelessWidget {
             ],
           ),
 
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  useSafeArea: true,
+                  builder: (context) => SplitTransactionSheet(
+                    transaction: transaction,
+                  ),
+                );
+              },
+              icon: const Icon(Icons.call_split),
+              label: const Text('Split Bill'),
+            ),
+          ),
           const SizedBox(height: 32),
         ],
       ),

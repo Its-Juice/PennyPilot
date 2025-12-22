@@ -64,6 +64,46 @@ class ReceiptExtractionService {
     return result;
   }
 
+  /// Extract receipt data from raw OCR text (from physical receipt scan)
+  Future<ExtractionResult> extractReceiptFromOCRText(String ocrText) async {
+    _logger.info('Extracting receipt from OCR text');
+    
+    final result = ExtractionResult();
+    
+    // For OCR text, we use the first few non-empty lines as potential merchant candidates
+    final lines = ocrText.split('\n').where((l) => l.trim().isNotEmpty).toList();
+    result.rawMerchantName = lines.isNotEmpty ? lines.first.trim() : 'Unknown Merchant';
+    result.merchantConfidence = lines.isNotEmpty ? ConfidenceLevel.medium : ConfidenceLevel.low;
+    
+    // Normalize merchant
+    result.merchantName = await _merchantService.normalizeMerchantName(result.rawMerchantName);
+    
+    // Extract amounts (reuse existing regex logic)
+    final amountExtraction = _extractAmounts(ocrText, '');
+    result.totalAmount = amountExtraction.total;
+    result.subtotalAmount = amountExtraction.subtotal;
+    result.taxAmount = amountExtraction.tax;
+    result.amountConfidence = amountExtraction.confidence;
+    
+    // Extract date
+    final dateExtraction = _extractDate(ocrText, '');
+    result.date = dateExtraction.date;
+    result.dateConfidence = dateExtraction.confidence;
+    
+    // Extract line items
+    final lineItems = _extractLineItems(ocrText);
+    result.lineItems = lineItems;
+    result.hasLineItems = lineItems.isNotEmpty;
+    
+    result.overallConfidence = _calculateOverallConfidence(
+      result.merchantConfidence,
+      result.amountConfidence,
+      result.dateConfidence,
+    );
+    
+    return result;
+  }
+
   /// Extract merchant name from email
   MerchantExtraction _extractMerchant(String subject, String sender, String body) {
     final senderLower = sender.toLowerCase();

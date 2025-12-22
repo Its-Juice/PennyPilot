@@ -128,6 +128,32 @@ class SubscriptionIntelligenceService {
     // Check if it's a trial
     final isTrial = _detectTrial(transactions, daysBetween);
 
+    // Detect Zombie state & Price Hikes
+    bool isZombie = false;
+    String? zombieReason;
+    double? priceHikePercent;
+
+    if (transactions.length >= 2) {
+      final lastAmount = transactions.last.amount;
+      final prevAmount = transactions[transactions.length - 2].amount;
+      
+      if (lastAmount > prevAmount && prevAmount > 0) {
+        priceHikePercent = ((lastAmount - prevAmount) / prevAmount) * 100;
+        if (priceHikePercent > 10) {
+          isZombie = true;
+          zombieReason = 'Significant price increase detected (${priceHikePercent.toStringAsFixed(1)}%)';
+        }
+      }
+      
+      // Trial to paid transition
+      if (transactions.first.amount < lastAmount * 0.1 && lastAmount > 0) {
+        if (transactions.length >= 2 && transactions.last.amount > transactions.first.amount) {
+          isZombie = true;
+          zombieReason = 'Free trial ended; now charging full price';
+        }
+      }
+    }
+
     final subscription = SubscriptionModel()
       ..serviceName = merchant
       ..amount = amount
@@ -145,6 +171,9 @@ class SubscriptionIntelligenceService {
       ..averageDaysBetweenCharges = avgDays
       ..currency = latestTransaction.currency
       ..userConfirmed = false
+      ..isZombie = isZombie
+      ..zombieReason = zombieReason
+      ..lastPriceHikePercent = priceHikePercent
       ..createdAt = DateTime.now();
 
     return subscription;

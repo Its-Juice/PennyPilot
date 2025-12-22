@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:pennypilot/src/data/models/transaction_model.dart';
 import 'package:pennypilot/src/presentation/providers/data_providers.dart';
 import 'package:pennypilot/src/presentation/providers/database_provider.dart';
+import 'package:pennypilot/src/presentation/providers/app_state_provider.dart';
 
 class AddTransactionSheet extends ConsumerStatefulWidget {
   const AddTransactionSheet({super.key});
@@ -78,6 +79,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     try {
       final isar = ref.read(isarProvider);
       
+      final preferredCurrency = ref.read(appStateProvider).currencyCode;
       final transaction = TransactionModel()
         ..kind = _kind
         ..origin = TransactionOrigin.manual
@@ -90,6 +92,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
         ..hasLineItems = false
         ..userVerified = true
         ..extractionConfidence = ConfidenceLevel.high
+        ..currency = preferredCurrency
         ..createdAt = DateTime.now()
         ..updatedAt = DateTime.now();
 
@@ -201,7 +204,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     textAlign: TextAlign.center,
                     decoration: InputDecoration(
                       hintText: '0.00',
-                      prefixText: '\$ ',
+                      prefixText: '${CurrencyInfo.getSymbol(ref.watch(appStateProvider).currencyCode)} ',
                       border: InputBorder.none,
                       hintStyle: theme.textTheme.displaySmall?.copyWith(
                         color: theme.colorScheme.onSurface.withOpacity(0.3),

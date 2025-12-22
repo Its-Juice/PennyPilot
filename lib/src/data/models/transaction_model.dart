@@ -74,6 +74,9 @@ class TransactionModel {
   /// Whether user has manually verified this transaction
   bool userVerified = false;
 
+  /// Whether this transaction has splits
+  bool hasSplits = false;
+
   /// Whether this transaction has been manually edited by the user
   bool isManuallyEdited = false;
 

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pennypilot/src/core/theme/app_theme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pennypilot/src/presentation/providers/app_state_provider.dart';
 
 /// Widget to display currency amounts with proper formatting
-class AmountDisplay extends StatelessWidget {
+class AmountDisplay extends ConsumerWidget {
   final double amount;
   final String? currency;
   final TextStyle? style;
@@ -14,7 +16,7 @@ class AmountDisplay extends StatelessWidget {
   const AmountDisplay({
     super.key,
     required this.amount,
-    this.currency = 'USD',
+    this.currency,
     this.style,
     this.showCurrency = true,
     this.showSign = false,
@@ -22,10 +24,12 @@ class AmountDisplay extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final appCurrency = currency ?? ref.watch(appStateProvider).currencyCode;
+    
     final formatter = NumberFormat.currency(
-      symbol: showCurrency ? _getCurrencySymbol() : '',
+      symbol: showCurrency ? _getCurrencySymbol(appCurrency) : '',
       decimalDigits: 2,
     );
 
@@ -45,19 +49,8 @@ class AmountDisplay extends StatelessWidget {
     );
   }
 
-  String _getCurrencySymbol() {
-    switch (currency?.toUpperCase()) {
-      case 'USD':
-        return '\$';
-      case 'EUR':
-        return '€';
-      case 'GBP':
-        return '£';
-      case 'JPY':
-        return '¥';
-      default:
-        return '\$';
-    }
+  String _getCurrencySymbol(String code) {
+    return CurrencyInfo.getSymbol(code);
   }
 }
 
@@ -71,7 +64,7 @@ class AmountChip extends StatelessWidget {
   const AmountChip({
     super.key,
     required this.amount,
-    this.currency = 'USD',
+    this.currency,
     this.label,
     this.backgroundColor,
   });

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:pennypilot/src/data/models/subscription_model.dart';
 import 'package:pennypilot/src/presentation/providers/data_providers.dart';
 import 'package:pennypilot/src/presentation/providers/database_provider.dart';
+import 'package:pennypilot/src/presentation/providers/app_state_provider.dart';
 
 class AddSubscriptionSheet extends ConsumerStatefulWidget {
   const AddSubscriptionSheet({super.key});
@@ -52,6 +53,7 @@ class _AddSubscriptionSheetState extends ConsumerState<AddSubscriptionSheet> {
     try {
       final isar = ref.read(isarProvider);
       
+      final preferredCurrency = ref.read(appStateProvider).currencyCode;
       final subscription = SubscriptionModel()
         ..serviceName = _nameController.text.trim()
         ..amount = double.parse(_amountController.text.replaceAll(RegExp(r'[^0-9.]'), ''))
@@ -63,6 +65,7 @@ class _AddSubscriptionSheetState extends ConsumerState<AddSubscriptionSheet> {
         ..chargeCount = 0
         ..frequencyConsistency = 100
         ..detectionSource = SubscriptionDetectionSource.manual
+        ..currency = preferredCurrency
         ..notes = _notesController.text.trim()
         ..userConfirmed = true
         ..createdAt = DateTime.now()
@@ -149,8 +152,8 @@ class _AddSubscriptionSheetState extends ConsumerState<AddSubscriptionSheet> {
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
                     labelText: 'Amount',
-                    prefixText: '\$ ',
-                    prefixIcon: const Icon(Icons.attach_money),
+                    prefixText: '${CurrencyInfo.getSymbol(ref.watch(appStateProvider).currencyCode)} ',
+                    prefixIcon: const Icon(Icons.payments),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   validator: (value) {

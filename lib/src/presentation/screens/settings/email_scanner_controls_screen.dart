@@ -10,7 +10,7 @@ import 'package:pennypilot/src/presentation/widgets/empty_state.dart';
 import 'package:intl/intl.dart';
 
 // Email sender preferences provider
-final emailSenderPreferencesProvider = StreamProvider<List<EmailSenderPreferenceModel>>((ref) {
+final emailSenderPreferencesProvider = StreamProvider<List<EmailSenderPreferenceModel>>((ref) async* {
   final isar = ref.watch(isarProvider);
   
   yield* isar.emailSenderPreferenceModels

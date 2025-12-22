@@ -9,6 +9,8 @@ import 'package:pennypilot/src/data/models/extraction_metadata_model.dart';
 import 'package:pennypilot/src/data/models/merchant_normalization_rule_model.dart';
 import 'package:pennypilot/src/data/models/email_sender_preference_model.dart';
 import 'package:pennypilot/src/data/models/category_model.dart';
+import 'package:pennypilot/src/data/models/budget_model.dart';
+
 
 class DatabaseService {
   late Future<Isar> db;
@@ -35,6 +37,8 @@ class DatabaseService {
         EmailSenderPreferenceModelSchema,
         CategoryModelSchema,
         MerchantCategoryMappingModelSchema,
+        BudgetModelSchema,
+        SpendingSplitModelSchema,
       ],
       directory: dir.path,
     );

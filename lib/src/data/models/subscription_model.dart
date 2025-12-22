@@ -72,6 +72,15 @@ class SubscriptionModel {
   /// Whether user has confirmed this is a subscription
   bool userConfirmed = false;
 
+  /// Whether this is flagged as a "Zombie" subscription (unused or price hiked)
+  bool isZombie = false;
+
+  /// Reason for zombie flagging
+  String? zombieReason;
+
+  /// Last detected price hike percentage
+  double? lastPriceHikePercent;
+
   @Index()
   late DateTime createdAt;
 

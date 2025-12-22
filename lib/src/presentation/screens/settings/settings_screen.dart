@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pennypilot/src/presentation/providers/theme_provider.dart';
 import 'package:pennypilot/src/presentation/providers/email_provider.dart';
 import 'package:pennypilot/src/presentation/providers/auth_provider.dart';
+import 'package:pennypilot/src/presentation/screens/settings/privacy_audit_screen.dart';
 import 'package:pennypilot/src/presentation/screens/settings/manage_accounts_screen.dart';
+import 'package:pennypilot/src/presentation/providers/app_state_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -115,12 +117,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
           ListTile(
+            leading: const Icon(Icons.currency_exchange),
+            title: const Text('Primary Currency'),
+            subtitle: Text(
+              popularCurrencies
+                  .firstWhere((c) => c.code == ref.watch(appStateProvider).currencyCode, 
+                      orElse: () => popularCurrencies.first)
+                  .name
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _showCurrencyPicker(context, ref),
+          ),
+          ListTile(
             leading: const Icon(Icons.security),
             title: const Text('Privacy & Security'),
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const PrivacySecurityScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.verified_user_outlined),
+            title: const Text('Privacy Audit'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PrivacyAuditScreen()),
               );
             },
           ),
@@ -162,7 +186,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             leading: const Icon(Icons.info),
             title: const Text('About PennyPilot'),
             subtitle: Text(
-              'Version alpha.1.1${_aboutTapCount == 1 ? ' (Press 2 more to open GitHub)' : _aboutTapCount == 2 ? ' (Press 1 more to open GitHub)' : ''}',
+              'Version alpha.1.2${_aboutTapCount == 1 ? ' (Press 2 more to open GitHub)' : _aboutTapCount == 2 ? ' (Press 1 more to open GitHub)' : ''}',
             ),
             onTap: () {
               setState(() {
@@ -177,6 +201,64 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  void _showCurrencyPicker(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'Select Currency',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                controller: scrollController,
+                itemCount: popularCurrencies.length,
+                itemBuilder: (context, index) {
+                  final currency = popularCurrencies[index];
+                  final isSelected = ref.watch(appStateProvider).currencyCode == currency.code;
+                  
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: isSelected 
+                        ? Theme.of(context).colorScheme.primaryContainer
+                        : Theme.of(context).colorScheme.surfaceContainerHigh,
+                      child: Text(
+                        currency.symbol,
+                        style: TextStyle(
+                          color: isSelected
+                            ? Theme.of(context).colorScheme.onPrimaryContainer
+                            : Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                    title: Text(currency.name),
+                    subtitle: Text(currency.code),
+                    trailing: isSelected ? const Icon(Icons.check, color: Colors.green) : null,
+                    onTap: () {
+                      ref.read(appStateProvider.notifier).setCurrency(currency.code);
+                      Navigator.pop(context);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

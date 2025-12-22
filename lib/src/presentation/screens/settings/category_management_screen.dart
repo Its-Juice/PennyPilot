@@ -7,7 +7,7 @@ import 'package:pennypilot/src/data/models/category_model.dart';
 import 'package:pennypilot/src/presentation/widgets/empty_state.dart';
 
 // Categories provider
-final categoriesProvider = StreamProvider<List<CategoryModel>>((ref) {
+final categoriesProvider = StreamProvider<List<CategoryModel>>((ref) async* {
   final isar = ref.watch(isarProvider);
   
   yield* isar.categoryModels
@@ -19,7 +19,7 @@ final categoriesProvider = StreamProvider<List<CategoryModel>>((ref) {
 });
 
 // Merchant category mappings provider
-final merchantMappingsProvider = StreamProvider<List<MerchantCategoryMappingModel>>((ref) {
+final merchantMappingsProvider = StreamProvider<List<MerchantCategoryMappingModel>>((ref) async* {
   final isar = ref.watch(isarProvider);
   
   yield* isar.merchantCategoryMappingModels
