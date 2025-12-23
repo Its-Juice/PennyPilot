@@ -34,10 +34,10 @@ jobs:
         run: flutter pub run flutter_launcher_icons
 
       - name: Build APK
-        run: flutter build apk --release
+        run: flutter build apk --release --split-per-abi
 
-      - name: Upload APK
+      - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
-          name: pennypilot-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: pennypilot-release-apks
+          path: build/app/outputs/flutter-apk/app-*-release.apk

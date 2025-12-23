@@ -16,6 +16,7 @@ lib/src/config/secrets.dart
 migrate_working_dir/
 
 # IntelliJ related
+*.code-workspace
 *.iml
 *.ipr
 *.iws

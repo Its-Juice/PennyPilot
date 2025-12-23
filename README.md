@@ -17,7 +17,7 @@ PennyPilot is a **100% Free and Open Source (FOSS)**, local-first, privacy-focus
 
 - **Privacy First**: All email scanning and data extraction happen locally on your device.
 - **Smart Scanning**: Automatically detects receipts and recurring subscriptions from your inbox.
-- **Multi-Platform**: Supports Android and Desktop (Linux/macOS/Windows).
+- **Multi-Platform**: Supports Android and Desktop (Linux/Windows).
 - **Material You**: Beautiful, adaptive UI using Material 3 and Dynamic Color.
 - **Local Database**: High-performance local storage using Isar.
 
