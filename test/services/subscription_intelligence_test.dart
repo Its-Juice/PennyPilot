@@ -11,7 +11,7 @@ void main() {
       final sub = SubscriptionModel()
         ..serviceName = 'Netflix'
         ..amount = 15.99
-        ..priceHistory = [10.99, 15.99];
+        ..priceHistoryJson = '[10.99, 15.99]';
 
       final service = SubscriptionIntelligenceService(null as dynamic); // Mocking or passing null if possible
       

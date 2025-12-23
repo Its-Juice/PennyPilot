@@ -5,7 +5,7 @@
   "packages": [
     {
       "name": "pennypilot",
-      "version": "1.0.0-alpha.1.2",
+      "version": "1.0.0-alpha.1.3",
       "dependencies": [
         "cryptography",
         "cupertino_icons",
@@ -46,6 +46,7 @@
         "flutter_test",
         "isar_generator",
         "json_serializable",
+        "mockito",
         "riverpod_generator"
       ]
     },
@@ -1670,6 +1671,22 @@
       "name": "vm_service",
       "version": "15.0.2",
       "dependencies": []
+    },
+    {
+      "name": "mockito",
+      "version": "5.4.4",
+      "dependencies": [
+        "analyzer",
+        "build",
+        "code_builder",
+        "collection",
+        "dart_style",
+        "matcher",
+        "meta",
+        "path",
+        "source_gen",
+        "test_api"
+      ]
     }
   ],
   "configVersion": 1

@@ -614,6 +614,12 @@
       "languageVersion": "3.2"
     },
     {
+      "name": "mockito",
+      "rootUri": "file:///home/johnkap/.pub-cache/hosted/pub.dev/mockito-5.4.4",
+      "packageUri": "lib/",
+      "languageVersion": "3.1"
+    },
+    {
       "name": "package_config",
       "rootUri": "file:///home/johnkap/.pub-cache/hosted/pub.dev/package_config-2.2.0",
       "packageUri": "lib/",

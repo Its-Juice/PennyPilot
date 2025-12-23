@@ -186,7 +186,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             leading: const Icon(Icons.info),
             title: const Text('About PennyPilot'),
             subtitle: Text(
-              'Version alpha.1.3${_aboutTapCount == 1 ? ' (Press 2 more to open GitHub)' : _aboutTapCount == 2 ? ' (Press 1 more to open GitHub)' : ''}',
+              'Version 1.0.0-alpha.1.3${_aboutTapCount == 1 ? ' (Press 2 more to open GitHub)' : _aboutTapCount == 2 ? ' (Press 1 more to open GitHub)' : ''}',
             ),
             onTap: () {
               setState(() {
