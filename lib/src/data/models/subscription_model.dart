@@ -2,6 +2,12 @@ import 'package:isar/isar.dart';
 
 part 'subscription_model.g.dart';
 
+enum SubscriptionAnomaly {
+  priceHike, // Price went up
+  priceDrop, // Price went down
+  zombie, // Active but no recent transactions
+}
+
 @collection
 class SubscriptionModel {
   Id id = Isar.autoIncrement;
@@ -51,6 +57,9 @@ class SubscriptionModel {
   @Enumerated(EnumType.ordinal)
   late SubscriptionDetectionSource detectionSource;
 
+  /// Detected anomalies
+  List<String> anomalies = [];
+
   /// Whether this is currently in a trial period
   bool isTrial = false;
 
@@ -98,17 +107,16 @@ enum SubscriptionFrequency {
 }
 
 enum SubscriptionLifecycleState {
-  active,      // Currently active, recent charges
-  trial,       // In trial period
-  paused,      // No recent charges but not ended
-  ended,       // No charges for extended period
-  cancelled,   // User marked as cancelled
+  active, // Currently active, recent charges
+  trial, // In trial period
+  paused, // No recent charges but not ended
+  ended, // No charges for extended period
+  cancelled, // User marked as cancelled
 }
 
 enum SubscriptionDetectionSource {
-  email,       // Detected from email patterns
-  manual,      // User manually added
-  pattern,     // Detected from transaction patterns
-  keyword,     // Detected from merchant keywords
+  email, // Detected from email patterns
+  manual, // User manually added
+  pattern, // Detected from transaction patterns
+  keyword, // Detected from merchant keywords
 }
-

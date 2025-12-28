@@ -202,46 +202,42 @@ class _PrivacySecurityScreenState extends ConsumerState<PrivacySecurityScreen> {
     );
   }
 
-  void _showResetAIDialog(BuildContext context, DatabaseService dbService) {
-    final theme = Theme.of(context);
-    
+  void _showDestructiveConfirmationDialog({
+    required BuildContext context,
+    required String title,
+    required String content,
+    required IconData icon,
+    required Color iconColor,
+    required String confirmationText,
+    required Future<void> Function() onConfirm,
+    VoidCallback? onCancel,
+  }) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         icon: Icon(
-          Icons.psychology_outlined,
-          color: theme.colorScheme.tertiary,
+          icon,
+          color: iconColor,
           size: 32,
         ),
-        title: const Text('Reset AI Understanding?'),
-        content: const Text(
-          'This will clear:\n'
-          '• Extraction confidence scores\n'
-          '• Merchant normalizations (system only)\n'
-          '• Derived metadata\n\n'
-          'Your raw transaction data will be preserved.\n'
-          'User-defined rules will be kept.',
-        ),
+        title: Text(title),
+        content: Text(content),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              Navigator.pop(context);
+              onCancel?.call();
+            },
             child: const Text('Cancel'),
           ),
           FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: iconColor,
+            ),
             onPressed: () async {
               Navigator.pop(context);
-              
               try {
-                await dbService.resetAIUnderstanding();
-                
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('AI understanding reset successfully'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
+                await onConfirm();
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -253,10 +249,37 @@ class _PrivacySecurityScreenState extends ConsumerState<PrivacySecurityScreen> {
                 }
               }
             },
-            child: const Text('Reset'),
+            child: Text(confirmationText),
           ),
         ],
       ),
+    );
+  }
+
+  void _showResetAIDialog(BuildContext context, DatabaseService dbService) {
+    _showDestructiveConfirmationDialog(
+      context: context,
+      title: 'Reset AI Understanding?',
+      content: 'This will clear:\n'
+          '• Extraction confidence scores\n'
+          '• Merchant normalizations (system only)\n'
+          '• Derived metadata\n\n'
+          'Your raw transaction data will be preserved.\n'
+          'User-defined rules will be kept.',
+      icon: Icons.psychology_outlined,
+      iconColor: Theme.of(context).colorScheme.tertiary,
+      confirmationText: 'Reset',
+      onConfirm: () async {
+        await dbService.resetAIUnderstanding();
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('AI understanding reset successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      },
     );
   }
 
@@ -389,287 +412,103 @@ class _PrivacySecurityScreenState extends ConsumerState<PrivacySecurityScreen> {
   }
 
   void _showClearTokensDialog(BuildContext context) {
-    showDialog(
+    _showDestructiveConfirmationDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        icon: const Icon(Icons.key_off, color: Colors.orange, size: 32),
-        title: const Text('Clear Email Tokens?'),
-        content: const Text(
-          'This will disconnect all email accounts. '
-          'You will need to sign in again to fetch new receipts.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
+      title: 'Clear Email Tokens?',
+      content: 'This will disconnect all email accounts. You will need to sign in again to fetch new receipts.',
+      icon: Icons.key_off,
+      iconColor: Colors.orange,
+      confirmationText: 'Clear Tokens',
+      onConfirm: () async {
+        final authService = ref.read(authServiceProvider);
+        await authService.signOut();
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Email accounts disconnected and tokens cleared'),
               backgroundColor: Colors.orange,
             ),
-            onPressed: () async {
-              try {
-                final authService = ref.read(authServiceProvider);
-                await authService.signOut();
-                
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Email accounts disconnected and tokens cleared'),
-                      backgroundColor: Colors.orange,
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error clearing tokens: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
-            },
-            child: const Text('Clear Tokens'),
-          ),
-        ],
-      ),
+          );
+        }
+      },
     );
   }
-
-  void _showWipeDataDialog(BuildContext context, DatabaseService dbService) {
-    final theme = Theme.of(context);
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        icon: Icon(
-          Icons.warning,
-          color: theme.colorScheme.error,
-          size: 32,
-        ),
-        title: const Text('Wipe All Data?'),
-        content: const Text(
-          'This action cannot be undone!\n\n'
-          'All your transactions, subscriptions, categories, '
-          'and settings will be permanently deleted.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: theme.colorScheme.error,
-            ),
-            onPressed: () async {
-              Navigator.pop(context);
-              
-              try {
-                await dbService.wipeData();
-                
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('All data wiped'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
-            },
-            child: const Text('Wipe Data'),
-          ),
-        ],
-      ),
-    );
-  }
-
 
   void _showResetFinancialDataDialog(BuildContext context, DatabaseService dbService) {
-    showDialog(
+    _showDestructiveConfirmationDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        icon: const Icon(
-          Icons.refresh,
-          color: Colors.orange,
-          size: 32,
-        ),
-        title: const Text('Reset Financial Data?'),
-        content: const Text(
-          'This will delete:\\n'
-          '• All transactions\\n'
-          '• All subscriptions\\n'
-          '• All receipts\\n'
-          '• Extraction metadata\\n\\n'
-          'This will preserve:\\n'
-          '✓ Connected email accounts\\n'
-          '✓ Categories\\n'
-          '✓ App settings\\n\\n'
+      title: 'Reset Financial Data?',
+      content: 'This will delete:\n'
+          '• All transactions\n'
+          '• All subscriptions\n'
+          '• All receipts\n'
+          '• Extraction metadata\n\n'
+          'This will preserve:\n'
+          '✓ Connected email accounts\n'
+          '✓ Categories\n'
+          '✓ App settings\n\n'
           'This action cannot be undone!',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
+      icon: Icons.refresh,
+      iconColor: Colors.orange,
+      confirmationText: 'Reset Data',
+      onConfirm: () async {
+        await dbService.resetFinancialData();
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Financial data reset successfully'),
               backgroundColor: Colors.orange,
             ),
-            onPressed: () async {
-              Navigator.pop(context);
-              
-              try {
-                await dbService.resetFinancialData();
-                
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Financial data reset successfully'),
-                      backgroundColor: Colors.orange,
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
-            },
-            child: const Text('Reset Data'),
-          ),
-        ],
-      ),
+          );
+        }
+      },
     );
   }
 
   void _showFactoryResetDialog(BuildContext context, DatabaseService dbService) {
-    final theme = Theme.of(context);
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        icon: Icon(
-          Icons.warning,
-          color: theme.colorScheme.error,
-          size: 32,
-        ),
-        title: const Text('Factory Reset?'),
-        content: const Text(
-          '⚠️ DANGER ZONE ⚠️\\n\\n'
-          'This will PERMANENTLY delete:\\n'
-          '• All transactions\\n'
-          '• All subscriptions\\n'
-          '• All receipts\\n'
-          '• All connected email accounts\\n'
-          '• All categories\\n'
-          '• All settings\\n'
-          '• Onboarding status\\n\\n'
-          'The app will reset to factory defaults.\\n\\n'
-          'This action CANNOT be undone!',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: theme.colorScheme.error,
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-              _showFactoryResetConfirmation(context, dbService);
-            },
-            child: const Text('Continue'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showFactoryResetConfirmation(BuildContext context, DatabaseService dbService) {
-    final theme = Theme.of(context);
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        icon: Icon(
-          Icons.error,
-          color: theme.colorScheme.error,
-          size: 32,
-        ),
-        title: const Text('Are you absolutely sure?'),
-        content: const Text(
-          'This is your last chance to cancel.\\n\\n'
-          'All your data will be permanently deleted.\\n\\n'
-          'Tap "Factory Reset" to confirm.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: theme.colorScheme.error,
-            ),
-            onPressed: () async {
-              Navigator.pop(context);
-              
-              try {
-                // Wipe database
-                await dbService.wipeData();
-                
-                // Clear auth tokens
-                final authService = ref.read(authServiceProvider);
-                await authService.signOut();
-                
-                // Reset onboarding
-                await ref.read(appStateProvider.notifier).factoryResetAppState();
-                
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Factory reset complete - please restart the app'),
-                      backgroundColor: Colors.red,
-                      duration: Duration(seconds: 5),
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
+    _showDestructiveConfirmationDialog(
+        context: context,
+        title: 'Factory Reset?',
+        content: '⚠️ DANGER ZONE ⚠️\n\n'
+            'This will PERMANENTLY delete:\n'
+            '• All transactions\n'
+            '• All subscriptions\n'
+            '• All receipts\n'
+            '• All connected email accounts\n'
+            '• All categories\n'
+            '• All settings\n'
+            '• Onboarding status\n\n'
+            'The app will reset to factory defaults.\n\n'
+            'This action CANNOT be undone!',
+        icon: Icons.warning,
+        iconColor: Theme.of(context).colorScheme.error,
+        confirmationText: 'Continue',
+        onConfirm: () async {
+          _showDestructiveConfirmationDialog(
+            context: context,
+            title: 'Are you absolutely sure?',
+            content: 'This is your last chance to cancel.\n\n'
+                'All your data will be permanently deleted.\n\n'
+                'Tap "Factory Reset" to confirm.',
+            icon: Icons.error,
+            iconColor: Theme.of(context).colorScheme.error,
+            confirmationText: 'Factory Reset',
+            onConfirm: () async {
+              await dbService.wipeData();
+              final authService = ref.read(authServiceProvider);
+              await authService.signOut();
+              await ref.read(appStateProvider.notifier).factoryResetAppState();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Factory reset complete - please restart the app'),
+                    backgroundColor: Colors.red,
+                    duration: Duration(seconds: 5),
+                  ),
+                );
               }
             },
-            child: const Text('Factory Reset'),
-          ),
-        ],
-      ),
-    );
+          );
+        });
   }
 }
