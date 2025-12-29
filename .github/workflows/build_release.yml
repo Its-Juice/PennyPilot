@@ -30,6 +30,9 @@ jobs:
           }
           EOF
 
+      - name: Create google-services.json
+        run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > android/app/google-services.json
+
       - name: Generate Launcher Icons
         run: flutter pub run flutter_launcher_icons
 
