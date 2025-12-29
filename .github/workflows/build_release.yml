@@ -38,12 +38,18 @@ jobs:
             echo "::error::The GOOGLE_SERVICES_JSON secret is empty or not set in GitHub Secrets!"
             exit 1
           fi
-          echo "$GS_JSON" > android/app/google-services.json
+          # Use printf to avoid interpretation of escape sequences
+          printf "%s" "$GS_JSON" > android/app/google-services.json
 
       - name: Validate google-services.json
         run: |
-          if ! jq . android/app/google-services.json; then
-            echo "::error::google-services.json is not a valid JSON file. Please check your GitHub Secret content."
+          if ! jq -e . android/app/google-services.json > /dev/null; then
+            echo "::error::google-services.json is not a valid JSON file."
+            echo "Check your GitHub Secret content for: "
+            echo "1. Missing brackets { or }"
+            echo "2. Extra characters at the start of the file"
+            echo "3. Copy-paste errors from line-numbered viewers"
+            echo "Detected size: $(wc -c < android/app/google-services.json) bytes"
             exit 1
           fi
 
