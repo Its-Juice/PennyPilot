@@ -196,7 +196,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('About PennyPilot'),
-            subtitle: const Text('Version 1.0.0-alpha.1.6'),
+            subtitle: const Text('Version 1.0.0-alpha.1.7'),
             onTap: () => launchUrl(
               Uri.parse('https://github.com/Its-Juice/PennyPilot'),
               mode: LaunchMode.externalApplication,

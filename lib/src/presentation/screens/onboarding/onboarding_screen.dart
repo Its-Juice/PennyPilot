@@ -14,21 +14,24 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<Map<String, String>> _pages = [
+  final List<Map<String, dynamic>> _pages = [
     {
       'title': 'Welcome to PennyPilot',
       'description': 'Your local-first personal finance tracker.',
-      'image': 'assets/images/onboarding_1.png', // Placeholder
+      'icon': Icons.account_balance_wallet,
+      'color': Colors.blue,
     },
     {
       'title': 'Privacy First',
       'description': 'Your data stays on your device. We process everything locally.',
-      'image': 'assets/images/onboarding_2.png', // Placeholder
+      'icon': Icons.security,
+      'color': Colors.green,
     },
     {
       'title': 'Smart Insights',
       'description': 'Automatically categorize spending and detect subscriptions.',
-      'image': 'assets/images/onboarding_3.png', // Placeholder
+      'icon': Icons.insights,
+      'color': Colors.orange,
     },
   ];
 
@@ -70,14 +73,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         Container(
                           height: 200,
                           width: 200,
-                          padding: const EdgeInsets.all(32),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            color: (_pages[index]['color'] as Color).withAlpha(30),
                             shape: BoxShape.circle,
                           ),
-                          child: Image.asset(
-                            'assets/pennypilot_logo.png',
-                            fit: BoxFit.contain,
+                          child: Icon(
+                            _pages[index]['icon'] as IconData,
+                            size: 100,
+                            color: _pages[index]['color'] as Color,
                           ),
                         ),
                         const SizedBox(height: 32),

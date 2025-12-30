@@ -9,6 +9,7 @@
 .history
 .svn/
 .idx/
+.agent/
 
 # IntelliJ related
 *.iml

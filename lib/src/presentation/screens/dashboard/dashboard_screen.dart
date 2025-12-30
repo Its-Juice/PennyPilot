@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pennypilot/src/presentation/providers/navigation_provider.dart';
 import 'package:pennypilot/src/presentation/screens/dashboard/overview_tab.dart';
 import 'package:pennypilot/src/presentation/screens/transactions/transactions_screen.dart';
 import 'package:pennypilot/src/presentation/screens/subscriptions/subscriptions_screen.dart';
 import 'package:pennypilot/src/presentation/screens/insights/insights_screen.dart';
 import 'package:pennypilot/src/presentation/screens/settings/settings_screen.dart';
 
-class DashboardScreen extends StatefulWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   final bool isDemoMode;
 
   const DashboardScreen({super.key, this.isDemoMode = false});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
-  int _selectedIndex = 0;
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   late final List<Widget> _screens;
 
@@ -40,11 +41,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           if (isWideScreen)
             NavigationRail(
-              selectedIndex: _selectedIndex,
+              selectedIndex: ref.watch(dashboardIndexProvider),
               onDestinationSelected: (index) {
-                setState(() {
-                  _selectedIndex = index;
-                });
+                ref.read(dashboardIndexProvider.notifier).state = index;
               },
               labelType: NavigationRailLabelType.all,
               destinations: const [
@@ -76,18 +75,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           Expanded(
-            child: _screens[_selectedIndex],
+            child: _screens[ref.watch(dashboardIndexProvider)],
           ),
         ],
       ),
       bottomNavigationBar: isWideScreen
           ? null
           : BottomNavigationBar(
-              currentIndex: _selectedIndex,
+              currentIndex: ref.watch(dashboardIndexProvider),
               onTap: (index) {
-                setState(() {
-                  _selectedIndex = index;
-                });
+                ref.read(dashboardIndexProvider.notifier).state = index;
               },
               backgroundColor: Theme.of(context).colorScheme.surface,
               type: BottomNavigationBarType.fixed,

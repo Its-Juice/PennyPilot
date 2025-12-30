@@ -376,13 +376,15 @@ class _PrivacySecurityScreenState extends ConsumerState<PrivacySecurityScreen> {
       }
 
       // Share the file
-      await Share.shareXFiles(
-        [XFile.fromData(
-          utf8.encode(content),
-          mimeType: format == 'json' ? 'application/json' : 'text/csv',
-          name: filename,
-        )],
-        subject: 'PennyPilot Data Export',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile.fromData(
+            utf8.encode(content),
+            mimeType: format == 'json' ? 'application/json' : 'text/csv',
+            name: filename,
+          )],
+          subject: 'PennyPilot Data Export',
+        ),
       );
 
       if (mounted) {

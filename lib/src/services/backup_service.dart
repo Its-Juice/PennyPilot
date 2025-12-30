@@ -26,7 +26,7 @@ class BackupService {
       
       if (passphrase == null || passphrase.isEmpty) {
         // Plain export
-        await Share.shareXFiles([XFile(dbPath)], text: 'PennyPilot Backup');
+        await SharePlus.instance.share(ShareParams(files: [XFile(dbPath)], text: 'PennyPilot Backup'));
       } else {
         // Encrypted export
         final encryptedData = await _encryptData(dbBytes, passphrase);
@@ -34,7 +34,7 @@ class BackupService {
         final encryptedFile = File('${tempDir.path}/pennypilot_backup.enc');
         await encryptedFile.writeAsBytes(encryptedData);
         
-        await Share.shareXFiles([XFile(encryptedFile.path)], text: 'PennyPilot Encrypted Backup');
+        await SharePlus.instance.share(ShareParams(files: [XFile(encryptedFile.path)], text: 'PennyPilot Encrypted Backup'));
         _logger.info('Encrypted backup exported');
       }
     } catch (e) {

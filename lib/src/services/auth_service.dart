@@ -22,7 +22,12 @@ class AuthService extends ChangeNotifier {
   final _storage = const FlutterSecureStorage();
   final _logger = Logger('AuthService');
 
+  late final GoogleSignIn _googleSignIn;
+
   AuthService() {
+    _googleSignIn = GoogleSignIn(
+      scopes: GoogleOAuthConfig.gmailReadOnlyScopes,
+    );
     _initialize();
   }
 
@@ -65,7 +70,7 @@ class AuthService extends ChangeNotifier {
 
   Future<String?> _signInMobile() async {
     try {
-      final GoogleSignInAccount? account = await GoogleSignIn().signIn();
+      final GoogleSignInAccount? account = await _googleSignIn.signIn();
 
       if (account == null) {
         debugPrint('Sign in returned null (user cancelled or failed)');
@@ -208,7 +213,7 @@ class AuthService extends ChangeNotifier {
       
       // Mobile Sign out
       if (_isMobile) {
-        await GoogleSignIn().signOut();
+        await _googleSignIn.signOut();
       }
       
       // Desktop Sign out
@@ -224,7 +229,7 @@ class AuthService extends ChangeNotifier {
       _connectedEmails.clear();
       
       if (_isMobile) {
-        await GoogleSignIn().signOut();
+        await _googleSignIn.signOut();
       } else {
         _desktopClient?.close();
         _desktopClient = null;
@@ -300,7 +305,7 @@ class AuthService extends ChangeNotifier {
       if (_isMobile) {
         // Mobile Restore
         try {
-           final account = await GoogleSignIn().signInSilently();
+           final account = await _googleSignIn.signInSilently();
            if (account != null) {
              _connectedEmails.add(account.email);
            }
@@ -351,8 +356,7 @@ class AuthService extends ChangeNotifier {
   Future<http.Client?> getClientForEmail(String email) async {
     if (_isMobile) {
       // Check if the requested email matches the current GoogleSignIn user
-      final googleSignIn = GoogleSignIn();
-      final account = await googleSignIn.signInSilently();
+      final account = await _googleSignIn.signInSilently();
       if (account?.email == email) {
         // This part is tricky because the extension method is on the instance.
         // We will need to figure out how to get an authenticated client.
@@ -388,7 +392,7 @@ class AuthService extends ChangeNotifier {
 
   Future<String?> getAccessToken() async {
     if (_isMobile) {
-      final account = await GoogleSignIn().signInSilently();
+      final account = await _googleSignIn.signInSilently();
       if (account != null) {
          final auth = await account.authentication;
          return auth.accessToken;

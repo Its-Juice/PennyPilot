@@ -7,7 +7,10 @@ import 'package:pennypilot/src/presentation/screens/transactions/edit_transactio
 import 'package:pennypilot/src/presentation/screens/transactions/split_transaction_sheet.dart';
 import 'package:intl/intl.dart';
 
-class TransactionDetailsScreen extends StatelessWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pennypilot/src/presentation/providers/transaction_provider.dart';
+
+class TransactionDetailsScreen extends ConsumerWidget {
   final TransactionModel transaction;
 
   const TransactionDetailsScreen({
@@ -16,7 +19,7 @@ class TransactionDetailsScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final dateFormat = DateFormat('EEEE, MMMM d, y');
     final timeFormat = DateFormat('h:mm a');
@@ -397,27 +400,62 @@ class TransactionDetailsScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {
-                    // TODO: Mark as verified
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Marked as verified')),
-                    );
+                  onPressed: () async {
+                    final updated = transaction..userVerified = !transaction.userVerified;
+                    await ref.read(transactionRepositoryProvider).updateTransaction(updated);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(updated.userVerified ? 'Marked as verified' : 'Unverified')),
+                      );
+                    }
                   },
-                  icon: const Icon(Icons.verified),
-                  label: const Text('Verify'),
+                  icon: Icon(transaction.userVerified ? Icons.verified_user : Icons.verified),
+                  label: Text(transaction.userVerified ? 'Unverify' : 'Verify'),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: FilledButton.icon(
-                  onPressed: () {
-                    // TODO: Add note
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Add note coming soon')),
+                  onPressed: () async {
+                    final controller = TextEditingController(text: transaction.notes);
+                    final newNote = await showDialog<String>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Add Note'),
+                        content: TextField(
+                          controller: controller,
+                          decoration: const InputDecoration(
+                            hintText: 'Enter your note here...',
+                            border: OutlineInputBorder(),
+                          ),
+                          maxLines: 3,
+                          autofocus: true,
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Cancel'),
+                          ),
+                          FilledButton(
+                            onPressed: () => Navigator.pop(context, controller.text),
+                            child: const Text('Save'),
+                          ),
+                        ],
+                      ),
                     );
+
+                    if (newNote != null && context.mounted) {
+                      final updated = transaction..notes = newNote..isManuallyEdited = true;
+                      await ref.read(transactionRepositoryProvider).updateTransaction(updated);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Note saved')),
+                        );
+                      }
+                    }
                   },
                   icon: const Icon(Icons.note_add),
-                  label: const Text('Add Note'),
+                  label: const Text('Note'),
                 ),
               ),
             ],

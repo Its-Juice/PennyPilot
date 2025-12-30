@@ -2,8 +2,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import 'package:logging/logging.dart';
+
 class CurrencyApiService {
   static const String _apiUrl = 'https://open.er-api.com/v6/latest/USD';
+  final _logger = Logger('CurrencyApiService');
 
   Future<Map<String, dynamic>> getExchangeRates() async {
     try {
@@ -21,7 +24,7 @@ class CurrencyApiService {
       }
     } catch (e) {
       // In a real app, you'd want to log this error and show a user-friendly message
-      print('Error fetching exchange rates: $e');
+      _logger.severe('Error fetching exchange rates: $e');
       rethrow;
     }
   }

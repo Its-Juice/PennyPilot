@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pennypilot/src/presentation/providers/data_providers.dart';
+import 'package:pennypilot/src/presentation/providers/app_state_provider.dart';
 
 class CategoriesScroller extends ConsumerWidget {
   const CategoriesScroller({super.key});
@@ -10,6 +11,8 @@ class CategoriesScroller extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final transactionsAsync = ref.watch(recentTransactionsProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
+    final appCurrency = ref.watch(appStateProvider).currencyCode;
+    final currencySymbol = CurrencyInfo.getSymbol(appCurrency);
 
     return categoriesAsync.when(
       data: (categories) => transactionsAsync.when(
@@ -50,7 +53,7 @@ class CategoriesScroller extends ConsumerWidget {
                       const SizedBox(height: 4),
                       Text(
                         NumberFormat.compactCurrency(
-                          symbol: 'S/.',
+                          symbol: currencySymbol,
                         ).format(amount),
                         style: TextStyle(color: Theme.of(context).colorScheme.primary),
                       ),

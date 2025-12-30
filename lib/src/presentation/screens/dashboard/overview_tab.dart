@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pennypilot/src/presentation/providers/data_providers.dart';
 import 'package:pennypilot/src/presentation/providers/email_provider.dart';
+import 'package:pennypilot/src/presentation/providers/navigation_provider.dart';
+import 'package:pennypilot/src/presentation/screens/auth/connect_email_screen.dart';
 import 'package:pennypilot/src/presentation/widgets/balance_header.dart';
 import 'package:pennypilot/src/presentation/widgets/categories_scroller.dart';
 import 'package:pennypilot/src/presentation/widgets/safe_to_spend.dart';
@@ -89,7 +91,9 @@ class OverviewTab extends ConsumerWidget {
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    ref.read(dashboardIndexProvider.notifier).state = 1; // Transactions tab
+                  },
                   child: const Text('View All'),
                 ),
               ],
@@ -174,16 +178,53 @@ class OverviewTab extends ConsumerWidget {
   }
 
   Widget _buildEmptyTransactions(BuildContext context) {
-    return Center(
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+      ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24),
+        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
         child: Column(
           children: [
-            Icon(Icons.receipt_long_outlined, size: 48, color: Theme.of(context).colorScheme.outline.withAlpha(128)),
-            const SizedBox(height: 16),
-            const Text('No transactions yet.', style: TextStyle(fontWeight: FontWeight.w500)),
-            const SizedBox(height: 4),
-            Text('Scan your email to begin.', style: Theme.of(context).textTheme.bodySmall),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.email_outlined,
+                size: 32,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'No Transactions Yet',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Connect your email to automatically scan for receipts and track your spending.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const ConnectEmailScreen()),
+                );
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Connect Email'),
+            ),
           ],
         ),
       ),

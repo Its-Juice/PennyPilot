@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pennypilot/src/presentation/providers/budget_provider.dart';
+import 'package:pennypilot/src/presentation/providers/app_state_provider.dart';
 import 'package:pennypilot/src/services/budget_service.dart';
 
 class SafeToSpend extends ConsumerWidget {
@@ -10,8 +11,11 @@ class SafeToSpend extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final safeToSpendAsync = ref.watch(safeToSpendProvider);
+    final appCurrency = ref.watch(appStateProvider).currencyCode;
+    final currencySymbol = CurrencyInfo.getSymbol(appCurrency);
+    
     final currencyFormat = NumberFormat.currency(
-      symbol: 'S/.',
+      symbol: currencySymbol,
       decimalDigits: 2,
     );
 
