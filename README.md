@@ -16,17 +16,6 @@ It automatically scans your inbox (Gmail) for receipts and subscriptions, extrac
 
 ---
 
-## New in alpha.1.8
-
-- **Biometric App Lock**: Secure your financial data with Fingerprint or FaceID.
-- **Local-Only Mode**: A kill-switch to prevent any external connections, prioritizing absolute privacy.
-- **The Nuclear Option**: Instantly wipe all local data and revoke OAuth tokens with one tap.
-- **Enhanced Data Portability**: Export your transactions to CSV or JSON for external analysis.
-- **Backup & Restore**: Export and import encrypted Isar database backups.
-- **Premium UI/UX**: Full Material 3 support with dynamic color (Material You) and smooth animations.
-
----
-
 ## Core Features
 
 | Feature | Description |
