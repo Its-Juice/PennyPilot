@@ -30,6 +30,7 @@ class BackupService {
       
       if (passphrase == null || passphrase.isEmpty) {
         // Plain export
+        // ignore: deprecated_member_use
         await Share.shareXFiles([XFile(dbPath)], text: 'PennyPilot Backup');
       } else {
         // Encrypted export
@@ -38,6 +39,7 @@ class BackupService {
         final encryptedFile = File('${tempDir.path}/pennypilot_backup.enc');
         await encryptedFile.writeAsBytes(encryptedData);
         
+        // ignore: deprecated_member_use
         await Share.shareXFiles([XFile(encryptedFile.path)], text: 'PennyPilot Encrypted Backup');
         _logger.info('Encrypted backup exported');
       }
@@ -73,6 +75,7 @@ class BackupService {
       final csvFile = File('${tempDir.path}/pennypilot_transactions.csv');
       await csvFile.writeAsString(csvData);
 
+      // ignore: deprecated_member_use
       await Share.shareXFiles([XFile(csvFile.path)], text: 'PennyPilot Transactions CSV');
     } catch (e) {
       _logger.severe('CSV Export failed', e);

@@ -5,13 +5,25 @@
   <img src="https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white" alt="Flutter">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License: MIT">
   <img src="https://img.shields.io/badge/Privacy-100%25%20Local-blue.svg?style=for-the-badge" alt="Privacy: Local">
+  <img src="https://img.shields.io/badge/Version-1.0.0--alpha.1.8-orange?style=for-the-badge" alt="Version">
 </p>
 
 ---
 
-**PennyPilot** is a sophisticated, privacy-first personal finance application that acts as your personal financial navigator. Unlike traditional apps that require you to manually input every coffee or upload your data to a black-box cloud, PennyPilot brings intelligence directly to your device. 
+**PennyPilot** is a sophisticated, privacy-first personal finance application that acts as your personal financial navigator. Unlike traditional apps that require you to manually input every coffee or upload your data to a black-box cloud, PennyPilot brings intelligence directly to your device.
 
-It automatically scans your inbox (Gmail) for receipts and subscriptions, extracting transaction details locally. **Your emails never leave your device.**
+It automatically scans your inbox (Gmail) for receipts and subscriptions, extracting transaction details locally. **Your emails never leave your device ecosystem.**
+
+---
+
+## New in alpha.1.8
+
+- **Biometric App Lock**: Secure your financial data with Fingerprint or FaceID.
+- **Local-Only Mode**: A kill-switch to prevent any external connections, prioritizing absolute privacy.
+- **The Nuclear Option**: Instantly wipe all local data and revoke OAuth tokens with one tap.
+- **Enhanced Data Portability**: Export your transactions to CSV or JSON for external analysis.
+- **Backup & Restore**: Export and import encrypted Isar database backups.
+- **Premium UI/UX**: Full Material 3 support with dynamic color (Material You) and smooth animations.
 
 ---
 
@@ -21,44 +33,41 @@ It automatically scans your inbox (Gmail) for receipts and subscriptions, extrac
 | :--- | :--- |
 | **Privacy First** | 100% local data processing. No cloud sync, no tracking, no data selling. |
 | **Smart Inbox Scan** | Automatically detects receipts from Amazon, Uber, Spotify, and more. |
-| **Subscription Tracker** | Intelligent detection of recurring bills with renewal alerts. |
+| **Subscription Tracker** | Intelligent detection of recurring bills with renewal alerts and price hike detection. |
+| **Safe-to-Spend** | Calculates how much you can spend per day based on your budget and upcoming bills. |
 | **Insights & Analytics** | Beautiful charts and spending breakdowns per category. |
-| **Local-First Speed** | High-performance transactions using the Isar database. |
-| **Material You** | Professional Material 3 UI with adaptive themes and dark mode. |
+| **Material You** | Professional Material 3 UI with adaptive themes, dark mode, and Lottie animations. |
 | **Multi-Platform** | Seamless experience across Android, Linux, and Windows. |
 
 ---
 
 ## Tech Stack
 
-- **Core**: [Flutter](https://flutter.dev) (The most powerful cross-platform UI toolkit).
-- **State Management**: [Riverpod](https://riverpod.dev) (Robust, compile-safe state providers).
-- **Storage**: [Isar Database](https://isar.dev) (Ultra-fast local database for Flutter).
-- **Authentication**: [Google OAuth 2.0](https://developers.google.com/identity/protocols/oauth2) (Secure access to Gmail scopes).
-- **Architecture**: Clean Architecture with a focus on Service-oriented logic.
+- **Core**: [Flutter](https://flutter.dev)
+- **State Management**: [Riverpod](https://riverpod.dev)
+- **Database**: [Isar](https://isar.dev) (Ultra-fast, local-first)
+- **Authentication**: [Google OAuth 2.0](https://developers.google.com/identity/protocols/oauth2)
+- **Local AI**: [MediaPipe](https://developers.google.com/mediapipe) & [Gemma](https://github.com/google-deepmind/gemma) (Experimental)
+- **Security**: [local_auth](https://pub.dev/packages/local_auth) & [cryptography](https://pub.dev/packages/cryptography)
 
 ---
 
 ## Getting Started
 
 ### 1. Prerequisites
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) installed and configured.
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) installed.
 - A Google Cloud Project for OAuth credentials.
 
 ### 2. Configuration
 1.  **OAuth Credentials**:
-    - Obtain Client IDs for Android and Desktop from the [Google Cloud Console](https://console.cloud.google.com/).
-    - Add `lib/src/config/secrets.dart` (referencing `lib/src/config/secrets.dart.example`).
-2.  **Android Setup (Critical)**:
-    - To avoid `PlatformException(10)`, follow the [Detailed Android Setup Guide](docs/android-setup.md) to register your SHA-1 fingerprint.
+    - Add `lib/src/config/secrets.dart` with your Google Client IDs.
+2.  **Android Setup**:
+    - Follow the [Detailed Android Setup Guide](docs/android-setup.md) to register your SHA-1.
     - Package Name: `com.example.pennypilot`
 
 ### 3. Build & Run
 ```bash
-# Get dependencies
 flutter pub get
-
-# Run the app
 flutter run
 ```
 
@@ -68,20 +77,15 @@ flutter run
 
 PennyPilot is built on the philosophy that **Financial Data is Private Data**.
 1. **No External Servers**: We do not host any back-end servers that store your data.
-2. **Local Scanning**: Email content is fetched via IMAP/APIs directly to your device and parsed in memory.
-3. **Open Source**: The code is 100% open, allowing the community to audit our privacy claims.
+2. **Local Scanning**: Email content is fetched via OAuth2 directly to your device and parsed in memory.
+3. **Encrypted Backups**: Optional passphrase protection for your data exports.
+4. **Open Source**: Audit our code anytime.
 
 ---
 
-## Roadmap
+## Contributing
 
-We are constantly evolving. Our current focus includes:
-- [ ] **On-Device LLM**: Using Google's Gemini Nano for even smarter merchant extraction.
-- [ ] **Biometric Lock**: Securing your data with Fingerprint/FaceID.
-- [ ] **Expanded Detectors**: Supporting more languages and international merchants.
-- [ ] **Data Portability**: Full JSON/CSV export for manual analysis.
-
-See our [Full Enhancement Plan](docs/pennypilot-enhancement-plan.md) for more.
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions and coding standards.
 
 ---
 

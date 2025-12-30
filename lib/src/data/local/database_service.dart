@@ -14,14 +14,15 @@ import 'package:pennypilot/src/data/models/budget_model.dart';
 
 class DatabaseService {
   late Future<Isar> db;
+  final String? _directory;
   final _logger = Logger('DatabaseService');
 
-  DatabaseService() {
+  DatabaseService([this._directory]) {
     db = _initDb();
   }
 
   Future<Isar> _initDb() async {
-    final dir = await getApplicationDocumentsDirectory();
+    final path = _directory ?? (await getApplicationDocumentsDirectory()).path;
     
     // Note: Isar v3.1.0 does not support encryption for the default engine.
     // Encryption will be enabled when upgrading to Isar v4 or by switching to SQLite engine.
@@ -40,7 +41,7 @@ class DatabaseService {
         BudgetModelSchema,
         SpendingSplitModelSchema,
       ],
-      directory: dir.path,
+      directory: path,
     );
   }
 

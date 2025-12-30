@@ -110,7 +110,7 @@ class SubscriptionModel {
     this.cycleHistoryJson,
     this.frequencyConsistency = 100,
     this.detectionSource = SubscriptionDetectionSource.manual,
-    this.anomalies = const [],
+    List<String>? anomalies,
     this.isTrial = false,
     this.trialEndDate,
     this.chargeCount = 0,
@@ -123,7 +123,7 @@ class SubscriptionModel {
     this.lastPriceHikePercent,
     required this.createdAt,
     this.updatedAt,
-  });
+  }) : anomalies = anomalies ?? [];
 }
 
 enum SubscriptionFrequency {

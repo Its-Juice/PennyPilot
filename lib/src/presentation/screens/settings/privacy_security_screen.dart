@@ -73,7 +73,7 @@ class PrivacySecurityScreen extends ConsumerWidget {
                 // Using existing exportBackup (encrypted if passphrase provided, plain if not)
                 await backupService.exportBackup(); 
               } catch (e) {
-                _showError(context, e.toString());
+                if (context.mounted) _showError(context, e.toString());
               }
             },
           ),
@@ -85,7 +85,7 @@ class PrivacySecurityScreen extends ConsumerWidget {
               try {
                 await backupService.exportToCsv();
               } catch (e) {
-                _showError(context, e.toString());
+                if (context.mounted) _showError(context, e.toString());
               }
             },
           ),
@@ -97,7 +97,7 @@ class PrivacySecurityScreen extends ConsumerWidget {
               try {
                 await backupService.importBackup();
               } catch (e) {
-                _showError(context, e.toString());
+                if (context.mounted) _showError(context, e.toString());
               }
             },
           ),
