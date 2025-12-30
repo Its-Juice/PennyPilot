@@ -15,7 +15,7 @@ It automatically scans your inbox (Gmail) for receipts and subscriptions, extrac
 
 ---
 
-## ✨ Core Features
+## Core Features
 
 | Feature | Description |
 | :--- | :--- |
@@ -29,7 +29,7 @@ It automatically scans your inbox (Gmail) for receipts and subscriptions, extrac
 
 ---
 
-## � Tech Stack
+## Tech Stack
 
 - **Core**: [Flutter](https://flutter.dev) (The most powerful cross-platform UI toolkit).
 - **State Management**: [Riverpod](https://riverpod.dev) (Robust, compile-safe state providers).
@@ -64,7 +64,7 @@ flutter run
 
 ---
 
-## � Privacy & Security
+## Privacy & Security
 
 PennyPilot is built on the philosophy that **Financial Data is Private Data**.
 1. **No External Servers**: We do not host any back-end servers that store your data.
