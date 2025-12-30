@@ -62,6 +62,13 @@ jobs:
       - name: Generate Launcher Icons
         run: flutter pub run flutter_launcher_icons
 
+      - name: Make gradlew executable
+        run: |
+          cd android
+          chmod +x gradlew
+          # Fix potential line ending issues
+          sed -i 's/\r$//' gradlew
+
       - name: Build APK
         working-directory: android
         run: ./gradlew :app:assembleRelease -x test -x lint
