@@ -7,17 +7,17 @@ This document outlines the roadmap for improving PennyPilot, focusing on stabili
 ## 🟢 Phase 1: Authentication & Stability (Immediate)
 *Goal: Ensure seamless sign-in across all platforms.*
 
-- [ ] **Unified Multi-Account Support**: Refactor `AuthService` and `AdvancedAuthService` into a single, robust transaction-aware service that handles multiple Gmail tokens simultaneously.
-- [ ] **Android Sign-In Fix**: Verify and document the SHA-1 registration process for debug/release keys to eliminate `PlatformException(10)`.
-- [ ] **Dynamic Client ID Resolution**: Implement a service that automatically selects the correct Client ID based on the runtime platform without manual constructor injection.
-- [ ] **Token Refresh Logic**: Implement robust background token refreshing to prevent session expiration during long-running email scans.
+- [x] **Unified Multi-Account Support**: Refactor `AuthService` and `AdvancedAuthService` into a single, robust transaction-aware service that handles multiple Gmail tokens simultaneously.
+- [x] **Android Sign-In Fix**: Verify and document the SHA-1 registration process for debug/release keys to eliminate `PlatformException(10)`.
+- [x] **Dynamic Client ID Resolution**: Implement a service that automatically selects the correct Client ID based on the runtime platform without manual constructor injection.
+- [x] **Token Refresh Logic**: Implement robust background token refreshing to prevent session expiration during long-running email scans.
 
-## 🟡 Phase 2: Intelligence & Extraction (Core)
+## � Phase 2: Intelligence & Extraction (Completed)
 *Goal: Improve the "Intelligence" in PennyPilot.*
 
-- [ ] **On-Device LLM Integration**: Integrate a lightweight, on-device model (e.g., MediaPipe LLM Inference with Gemma-2b) for extracting merchants and amounts from email bodies.
+- [x] **On-Device LLM Integration**: Integrate a lightweight, on-device model (e.g., MediaPipe LLM Inference with Gemma-2b) for extracting merchants and amounts from email bodies.
 - [x] **Deterministic Fallbacks**: Improve the regex-based extraction for common providers (Uber, Amazon, Netflix) to ensure 100% accuracy for major merchants.
-- [ ] **Subscription Detection**: Implement logic to categorize recurring transactions and predict next billing dates.
+- [x] **Subscription Detection**: Implement logic to categorize recurring transactions and predict next billing dates.
 - [x] **HTML Cleaning**: Refine the HTML-to-Text stripping logic to handle complex email layouts (tables, nested divs) more reliably.
 
 ## 🔵 Phase 3: Premium UI/UX (Experience)

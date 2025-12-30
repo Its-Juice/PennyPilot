@@ -5,6 +5,7 @@ import 'package:logging/logging.dart';
 import 'package:pennypilot/src/services/auth_service.dart';
 import 'package:pennypilot/src/services/receipt_extraction_service.dart';
 import 'package:pennypilot/src/services/subscription_intelligence_service.dart';
+import 'package:pennypilot/src/services/categorization_service.dart';
 import 'package:pennypilot/src/data/models/transaction_model.dart';
 import 'package:pennypilot/src/data/models/receipt_line_item_model.dart';
 
@@ -12,6 +13,7 @@ class EmailService {
   final AuthService _authService;
   final ReceiptExtractionService _receiptExtractionService;
   final SubscriptionIntelligenceService _subscriptionService;
+  final CategorizationService _categorizationService;
   final Isar _isar;
   final _logger = Logger('EmailService');
 
@@ -19,6 +21,7 @@ class EmailService {
     this._authService,
     this._receiptExtractionService,
     this._subscriptionService,
+    this._categorizationService,
     this._isar,
   );
 
@@ -166,13 +169,16 @@ class EmailService {
         ..date = extraction.date.year == DateTime.now().year && extraction.date.month == DateTime.now().month && extraction.date.day == DateTime.now().day && dateMillis > 0
             ? date 
             : extraction.date
-        ..category = null // To be categorized later
+        ..category = null 
         ..origin = TransactionOrigin.emailDetected
         ..extractionConfidence = extraction.overallConfidence
         ..hasLineItems = extraction.hasLineItems
         ..originalEmailId = messageId
         ..createdAt = DateTime.now()
         ..userVerified = false;
+
+      // 4. Categorize merchant
+      transaction.categoryId = await _categorizationService.categorizeMerchant(extraction.merchantName);
         
       if (dryRun) {
         return transaction;

@@ -5,12 +5,11 @@
   "packages": [
     {
       "name": "pennypilot",
-      "version": "1.0.0-alpha.1.6",
+      "version": "1.0.0-alpha.1.7",
       "dependencies": [
         "cryptography",
         "cupertino_icons",
         "dynamic_color",
-        "extension_google_sign_in_as_googleapis_auth",
         "file_picker",
         "fl_chart",
         "flutter",
@@ -31,6 +30,7 @@
         "isar_flutter_libs",
         "json_annotation",
         "logging",
+        "mediapipe_genai",
         "path",
         "path_provider",
         "riverpod_annotation",
@@ -411,14 +411,18 @@
       ]
     },
     {
-      "name": "extension_google_sign_in_as_googleapis_auth",
-      "version": "2.0.13",
+      "name": "mediapipe_genai",
+      "version": "0.0.1",
       "dependencies": [
-        "flutter",
-        "google_sign_in",
-        "googleapis_auth",
+        "async",
+        "equatable",
+        "ffi",
         "http",
-        "meta"
+        "logging",
+        "mediapipe_core",
+        "native_assets_cli",
+        "native_toolchain_c",
+        "path"
       ]
     },
     {
@@ -431,7 +435,7 @@
     },
     {
       "name": "google_sign_in",
-      "version": "6.1.6",
+      "version": "6.3.0",
       "dependencies": [
         "flutter",
         "google_sign_in_android",
@@ -1369,6 +1373,24 @@
       "dependencies": []
     },
     {
+      "name": "mediapipe_core",
+      "version": "0.0.1",
+      "dependencies": [
+        "equatable",
+        "ffi",
+        "logging",
+        "meta"
+      ]
+    },
+    {
+      "name": "equatable",
+      "version": "2.0.7",
+      "dependencies": [
+        "collection",
+        "meta"
+      ]
+    },
+    {
       "name": "_discoveryapis_commons",
       "version": "1.0.7",
       "dependencies": [
@@ -1436,14 +1458,6 @@
         "flutter",
         "meta",
         "plugin_platform_interface"
-      ]
-    },
-    {
-      "name": "equatable",
-      "version": "2.0.7",
-      "dependencies": [
-        "collection",
-        "meta"
       ]
     },
     {
@@ -1714,6 +1728,48 @@
       "name": "vm_service",
       "version": "15.0.2",
       "dependencies": []
+    },
+    {
+      "name": "native_assets_cli",
+      "version": "0.3.2",
+      "dependencies": [
+        "cli_config",
+        "collection",
+        "crypto",
+        "pub_semver",
+        "yaml",
+        "yaml_edit"
+      ]
+    },
+    {
+      "name": "cli_config",
+      "version": "0.1.2",
+      "dependencies": [
+        "args",
+        "yaml"
+      ]
+    },
+    {
+      "name": "native_toolchain_c",
+      "version": "0.3.3",
+      "dependencies": [
+        "cli_config",
+        "glob",
+        "logging",
+        "meta",
+        "native_assets_cli",
+        "pub_semver"
+      ]
+    },
+    {
+      "name": "yaml_edit",
+      "version": "2.2.3",
+      "dependencies": [
+        "collection",
+        "meta",
+        "source_span",
+        "yaml"
+      ]
     }
   ],
   "configVersion": 1

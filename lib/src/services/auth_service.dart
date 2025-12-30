@@ -12,13 +12,13 @@ import 'package:googleapis/gmail/v1.dart';
 import '../config/google_oauth_config.dart';
 
 class AuthService extends ChangeNotifier {
-  // Desktop Only
-  AutoRefreshingAuthClient? _desktopClient;
-  String? _desktopEmail;
-
-  final bool _isMobile = Platform.isAndroid || Platform.isIOS;
+  // Map of email -> Authenticated Client
+  final Map<String, http.Client> _clients = {};
+  
+  // Track connected emails
   final Set<String> _connectedEmails = {};
 
+  final bool _isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
   final _storage = const FlutterSecureStorage();
   final _logger = Logger('AuthService');
 
@@ -26,14 +26,34 @@ class AuthService extends ChangeNotifier {
 
   AuthService() {
     _googleSignIn = GoogleSignIn(
+      clientId: _isMobile ? GoogleOAuthConfig.mobileClientId : null,
       scopes: GoogleOAuthConfig.gmailReadOnlyScopes,
     );
     _initialize();
   }
 
+  // --- Dynamic Platform Configuration ---
+
+  String get _currentClientId {
+    if (_isMobile) {
+      return GoogleOAuthConfig.mobileClientId;
+    }
+    return GoogleOAuthConfig.desktopClientId;
+  }
+
+  String? get _currentClientSecret {
+    if (_isMobile) {
+      return null;
+    }
+    return GoogleOAuthConfig.desktopClientSecret;
+  }
+
+  ClientId get _oauthClientId => ClientId(_currentClientId, _currentClientSecret);
+
   // --- Getters ---
 
   Set<String> get connectedEmails => _connectedEmails;
+  bool get isAuthenticated => _connectedEmails.isNotEmpty;
 
   // --- Initialization ---
 
@@ -70,24 +90,27 @@ class AuthService extends ChangeNotifier {
 
   Future<String?> _signInMobile() async {
     try {
+      // For mobile, we might want to force choosing an account if adding multiple
       final GoogleSignInAccount? account = await _googleSignIn.signIn();
 
       if (account == null) {
-        debugPrint('Sign in returned null (user cancelled or failed)');
+        _logger.info('Sign in returned null (user cancelled or failed)');
         return null;
       } else {
-        debugPrint('Signed in as ${account.email}');
-        _logger.info('User signed in: ${account.email}');
+        _logger.info('Signed in as ${account.email}');
 
         _connectedEmails.add(account.email);
+        
+        // Get client and store it
+        final client = _GoogleSignInHttpClient(account);
+        _clients[account.email] = client;
+
         await _saveAccountsState();
         notifyListeners();
 
         return account.email;
       }
     } catch (e, stack) {
-      debugPrint('Google sign-in failed: $e');
-      debugPrint(stack.toString());
       _logger.severe('Google Sign-In failed', e, stack);
       rethrow;
     }
@@ -95,24 +118,21 @@ class AuthService extends ChangeNotifier {
 
   Future<String?> _signInDesktop() async {
     try {
-      // 1. Setup Client and Loopback Server
-      // Explicitly using the Desktop Client ID which triggers the correct flow
-      final clientId = ClientId(GoogleOAuthConfig.desktopClientId, GoogleOAuthConfig.desktopClientSecret);
+      final clientId = _oauthClientId;
       _logger.info('Starting Desktop OAuth flow with Client ID: ${clientId.identifier}');
       
-      // Use only the requested scopes
       final scopes = [...GoogleOAuthConfig.gmailReadOnlyScopes];
       
       final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       final redirectUri = 'http://localhost:${server.port}';
 
-      // 2. Launch Auth URL
       final authUrl = Uri.https('accounts.google.com', '/o/oauth2/v2/auth', {
         'client_id': clientId.identifier,
         'redirect_uri': redirectUri,
         'response_type': 'code',
         'scope': scopes.join(' '),
-        'access_type': 'offline', // Required for refresh token
+        'access_type': 'offline', 
+        'prompt': 'select_account', // Always allow selecting different accounts
       });
 
       _logger.info('Launching auth URL: $authUrl');
@@ -120,7 +140,6 @@ class AuthService extends ChangeNotifier {
         throw Exception('Could not launch URL: $authUrl');
       }
 
-      // 3. Listen for Code
       String? code;
       await for (final request in server) {
         if (request.uri.queryParameters.containsKey('code')) {
@@ -128,7 +147,7 @@ class AuthService extends ChangeNotifier {
           request.response
             ..statusCode = 200
             ..headers.contentType = ContentType.html
-            ..write('<html><head><title>Auth Success</title></head><body><h1>Authentication Successful</h1><p>You can close this window now and return to the application.</p><script>window.close();</script></body></html>');
+            ..write('<html><head><title>Auth Success</title></head><body style="font-family: sans-serif; text-align: center; padding-top: 50px;"><h1>Authentication Successful</h1><p>You can close this window now and return to the application.</p><script>window.close();</script></body></html>');
           await request.response.close();
           break;
         } else if (request.uri.queryParameters.containsKey('error')) {
@@ -145,7 +164,6 @@ class AuthService extends ChangeNotifier {
         throw Exception('Authorization flow cancelled or failed: No code received.');
       }
 
-      // 4. Exchange Code for Tokens
       final client = http.Client();
       final tokenResponse = await client.post(
         Uri.https('oauth2.googleapis.com', '/token'),
@@ -177,16 +195,15 @@ class AuthService extends ChangeNotifier {
         idToken: tokenData['id_token'],
       );
 
-      _desktopClient = autoRefreshingClient(clientId, credentials, http.Client());
-
-      // 5. Fetch User Info (Email) via Gmail API
-      // Since we dropped 'email'/'profile' scopes, we use Gmail API to identify the user.
-      final gmailApi = GmailApi(_desktopClient!);
+      final authClient = autoRefreshingClient(clientId, credentials, http.Client());
+      
+      // Get email
+      final gmailApi = GmailApi(authClient);
       final profile = await gmailApi.users.getProfile('me');
       final email = profile.emailAddress;
 
       if (email != null) {
-        _desktopEmail = email;
+        _clients[email] = authClient;
         _connectedEmails.add(email);
         
         await _saveDesktopCredentials(credentials, email);
@@ -210,30 +227,26 @@ class AuthService extends ChangeNotifier {
   Future<void> signOut({String? email}) async {
     if (email != null) {
       _connectedEmails.remove(email);
+      final client = _clients.remove(email);
+      client?.close();
       
-      // Mobile Sign out
       if (_isMobile) {
+        // Unfortunately GoogleSignIn doesn't support signing out of a single specific account easily
+        // if we use the default account tracking. For now, we sign out of the main session.
         await _googleSignIn.signOut();
       }
       
-      // Desktop Sign out
-      if (!_isMobile && _desktopEmail == email) {
-        _desktopClient?.close();
-        _desktopClient = null;
-        _desktopEmail = null;
-      }
       await _storage.delete(key: 'desktop_credentials_$email');
       await _storage.delete(key: 'sync_time_$email');
     } else {
-      // Sign out all
+      for (final client in _clients.values) {
+        client.close();
+      }
+      _clients.clear();
       _connectedEmails.clear();
       
       if (_isMobile) {
         await _googleSignIn.signOut();
-      } else {
-        _desktopClient?.close();
-        _desktopClient = null;
-        _desktopEmail = null;
       }
       await _storage.deleteAll();
     }
@@ -295,7 +308,6 @@ class AuthService extends ChangeNotifier {
 
   Future<void> _restoreAccounts() async {
     try {
-      // Restore list of connected emails
       final emailsJson = await _storage.read(key: 'connected_emails');
       if (emailsJson != null) {
         final List<dynamic> emails = json.decode(emailsJson);
@@ -303,22 +315,21 @@ class AuthService extends ChangeNotifier {
       }
 
       if (_isMobile) {
-        // Mobile Restore
         try {
            final account = await _googleSignIn.signInSilently();
            if (account != null) {
              _connectedEmails.add(account.email);
+             final client = _GoogleSignInHttpClient(account);
+             _clients[account.email] = client;
            }
         } catch (e) {
           _logger.warning('Mobile silent sign-in failed', e);
         }
-      } else if (!_isMobile) {
-        // Desktop Restore
-        try {
-          // On desktop, we try to restore the first email from the connected list as the "active" client
-          if (_connectedEmails.isNotEmpty) {
-            final firstEmail = _connectedEmails.first;
-            final credsJson = await _storage.read(key: 'desktop_credentials_$firstEmail');
+      } else {
+        // Desktop Restore for ALL accounts
+        for (final email in _connectedEmails) {
+          try {
+            final credsJson = await _storage.read(key: 'desktop_credentials_$email');
             if (credsJson != null) {
               final data = json.decode(credsJson);
               
@@ -335,17 +346,16 @@ class AuthService extends ChangeNotifier {
                 idToken: data['idToken'],
               );
               
-              final clientId = ClientId(GoogleOAuthConfig.desktopClientId, GoogleOAuthConfig.desktopClientSecret);
-              _desktopClient = autoRefreshingClient(clientId, credentials, http.Client());
-              _desktopEmail = data['email'];
-              
-              _logger.info('Restored desktop session for $_desktopEmail');
+              final authClient = autoRefreshingClient(_oauthClientId, credentials, http.Client());
+              _clients[email] = authClient;
+              _logger.info('Restored desktop session for $email');
             }
+          } catch (e) {
+             _logger.severe('Failed to restore desktop credentials for $email', e);
           }
-        } catch (e) {
-           _logger.severe('Failed to restore desktop credentials', e);
         }
       }
+      notifyListeners();
     } catch (e) {
       _logger.severe('Failed to restore accounts', e);
     }
@@ -354,53 +364,76 @@ class AuthService extends ChangeNotifier {
   // --- API Access ---
 
   Future<http.Client?> getClientForEmail(String email) async {
+    // 1. Check current memory cache
+    if (_clients.containsKey(email)) {
+      return _clients[email];
+    }
+
+    // 2. Platform-specific recovery
     if (_isMobile) {
-      // Check if the requested email matches the current GoogleSignIn user
       final account = await _googleSignIn.signInSilently();
       if (account?.email == email) {
-        // This part is tricky because the extension method is on the instance.
-        // We will need to figure out how to get an authenticated client.
-        return null; 
+        final client = _GoogleSignInHttpClient(account!);
+        _clients[email] = client;
+        return client;
       }
-    } else if (!_isMobile) {
-       // On Desktop, if we have a client matching the email
-       if (_desktopEmail == email) {
-         return _desktopClient;
-       } else {
-         // Try to load credentials for this specific email if not active
-         try {
-           final credsJson = await _storage.read(key: 'desktop_credentials_$email');
-           if (credsJson != null) {
-             final data = json.decode(credsJson);
-             final accessToken = AccessToken('Bearer', data['accessToken'], DateTime.parse(data['expiry']));
-             final credentials = AccessCredentials(accessToken, data['refreshToken'], (data['scopes'] as List).cast<String>(), idToken: data['idToken']);
-             final clientId = ClientId(GoogleOAuthConfig.desktopClientId, GoogleOAuthConfig.desktopClientSecret);
-             
-             // Optionally update active client
-             final client = autoRefreshingClient(clientId, credentials, http.Client());
-             _desktopClient = client;
-             _desktopEmail = email;
-             return client;
-           }
-         } catch (e) {
-           _logger.warning('Failed to load desktop client for $email', e);
-         }
-       }
+    } else {
+      // Desktop: Try to load from storage if not in memory
+      try {
+        final credsJson = await _storage.read(key: 'desktop_credentials_$email');
+        if (credsJson != null) {
+          final data = json.decode(credsJson);
+          final accessToken = AccessToken('Bearer', data['accessToken'], DateTime.parse(data['expiry']));
+          final credentials = AccessCredentials(accessToken, data['refreshToken'], (data['scopes'] as List).cast<String>(), idToken: data['idToken']);
+          
+          final client = autoRefreshingClient(_oauthClientId, credentials, http.Client());
+          _clients[email] = client;
+          return client;
+        }
+      } catch (e) {
+        _logger.warning('Failed to load desktop client for $email', e);
+      }
     }
     return null;
   }
 
-  Future<String?> getAccessToken() async {
+  Future<String?> getAccessToken(String email) async {
     if (_isMobile) {
+      // For mobile, we usually need the account instance
       final account = await _googleSignIn.signInSilently();
-      if (account != null) {
-         final auth = await account.authentication;
+      if (account?.email == email) {
+         final auth = await account!.authentication;
          return auth.accessToken;
       }
-    } else if (!_isMobile && _desktopClient != null) {
-      // autoRefreshingClient handles token refresh automatically
-       return _desktopClient!.credentials.accessToken.data;
+    } else if (_clients.containsKey(email)) {
+       final client = _clients[email];
+       if (client is AutoRefreshingAuthClient) {
+         return client.credentials.accessToken.data;
+       }
     }
     return null;
   }
 }
+
+/// A custom HTTP client that adds the Google Sign-In authentication header.
+class _GoogleSignInHttpClient extends http.BaseClient {
+  final GoogleSignInAccount _account;
+  final http.Client _inner = http.Client();
+
+  _GoogleSignInHttpClient(this._account);
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    final auth = await _account.authentication;
+    request.headers['Authorization'] = 'Bearer ${auth.accessToken}';
+    return _inner.send(request);
+  }
+  
+  @override
+  void close() {
+    _inner.close();
+    super.close();
+  }
+}
+
+

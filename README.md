@@ -50,7 +50,7 @@ It automatically scans your inbox (Gmail) for receipts and subscriptions, extrac
     - Obtain Client IDs for Android and Desktop from the [Google Cloud Console](https://console.cloud.google.com/).
     - Add `lib/src/config/secrets.dart` (referencing `lib/src/config/secrets.dart.example`).
 2.  **Android Setup (Critical)**:
-    - To avoid `PlatformException(10)`, ensure your **Debug SHA-1 fingerprint** is registered in the Google Cloud/Firebase console.
+    - To avoid `PlatformException(10)`, follow the [Detailed Android Setup Guide](docs/android-setup.md) to register your SHA-1 fingerprint.
     - Package Name: `com.example.pennypilot`
 
 ### 3. Build & Run

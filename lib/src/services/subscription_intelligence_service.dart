@@ -2,11 +2,13 @@ import 'package:isar/isar.dart';
 import 'package:logging/logging.dart';
 import 'dart:convert';
 import 'dart:math' as math;
+import 'package:pennypilot/src/services/categorization_service.dart';
 import 'package:pennypilot/src/data/models/subscription_model.dart';
 import 'package:pennypilot/src/data/models/transaction_model.dart';
 
 class SubscriptionIntelligenceService {
   final Isar _isar;
+  final CategorizationService? _categorizationService;
   final _logger = Logger('SubscriptionIntelligenceService');
 
   // Thresholds for subscription detection
@@ -14,7 +16,7 @@ class SubscriptionIntelligenceService {
   static const int maxDaysBetweenCharges = 45; // For monthly subscriptions
   static const double consistencyThreshold = 80.0; // 80% consistency
 
-  SubscriptionIntelligenceService(this._isar);
+  SubscriptionIntelligenceService(this._isar, [this._categorizationService]);
 
   Future<void> evaluateSubscription(SubscriptionModel subscription) async {
     subscription.anomalies.clear();
@@ -212,6 +214,10 @@ class SubscriptionIntelligenceService {
       zombieReason: zombieReason,
       lastPriceHikePercent: priceHikePercent,
     );
+
+    if (_categorizationService != null) {
+      subscription.categoryId = await _categorizationService.categorizeMerchant(merchant);
+    }
 
     return subscription;
   }

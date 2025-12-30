@@ -7,7 +7,8 @@ final emailServiceProvider = Provider<EmailService>((ref) {
   final authService = ref.watch(authServiceProvider);
   final receiptService = ref.watch(receiptExtractionServiceProvider);
   final subscriptionService = ref.watch(subscriptionIntelligenceServiceProvider);
+  final categorizationService = ref.watch(categorizationServiceProvider);
   final isar = ref.watch(isarProvider);
   
-  return EmailService(authService, receiptService, subscriptionService, isar);
+  return EmailService(authService, receiptService, subscriptionService, categorizationService, isar);
 });

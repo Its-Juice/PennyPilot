@@ -6,9 +6,32 @@ import 'package:pennypilot/src/data/models/subscription_model.dart';
 import 'package:pennypilot/src/services/merchant_normalization_service.dart';
 import 'package:pennypilot/src/services/subscription_intelligence_service.dart';
 import 'package:pennypilot/src/services/receipt_extraction_service.dart';
+import 'package:pennypilot/src/services/llm_extraction_service.dart';
+import 'package:pennypilot/src/services/categorization_service.dart';
+import 'package:pennypilot/src/services/startup_service.dart';
 
 import 'package:pennypilot/src/presentation/providers/database_provider.dart';
 export 'package:pennypilot/src/presentation/providers/database_provider.dart';
+
+// Startup service provider
+final startupServiceProvider = Provider<StartupService>((ref) {
+  final merchantService = ref.watch(merchantNormalizationServiceProvider);
+  final categorizationService = ref.watch(categorizationServiceProvider);
+  final llmService = ref.watch(llmExtractionServiceProvider);
+  
+  return StartupService(merchantService, categorizationService, llmService);
+});
+
+// LLM Extraction service provider
+final llmExtractionServiceProvider = Provider<LLMExtractionService>((ref) {
+  return LLMExtractionService();
+});
+
+// Categorization service provider
+final categorizationServiceProvider = Provider<CategorizationService>((ref) {
+  final isar = ref.watch(isarProvider);
+  return CategorizationService(isar);
+});
 
 // Merchant normalization service provider
 final merchantNormalizationServiceProvider = Provider<MerchantNormalizationService>((ref) {
@@ -19,14 +42,17 @@ final merchantNormalizationServiceProvider = Provider<MerchantNormalizationServi
 // Subscription intelligence service provider
 final subscriptionIntelligenceServiceProvider = Provider<SubscriptionIntelligenceService>((ref) {
   final isar = ref.watch(isarProvider);
-  return SubscriptionIntelligenceService(isar);
+  final categorizationService = ref.watch(categorizationServiceProvider);
+  
+  return SubscriptionIntelligenceService(isar, categorizationService);
 });
 
 // Receipt extraction service provider
 final receiptExtractionServiceProvider = Provider<ReceiptExtractionService>((ref) {
   final merchantService = ref.watch(merchantNormalizationServiceProvider);
+  final llmService = ref.watch(llmExtractionServiceProvider);
   
-  return ReceiptExtractionService(merchantService);
+  return ReceiptExtractionService(merchantService, llmService);
 });
 
 // Transactions stream provider

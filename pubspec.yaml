@@ -21,9 +21,9 @@ dependencies:
   fl_chart: any
   intl: any
   workmanager: any
-  google_sign_in: 6.1.6
+  google_sign_in: ^6.2.4
   googleapis: ^11.4.0
-  extension_google_sign_in_as_googleapis_auth: ^2.0.13
+  mediapipe_genai: ^0.0.1
   uuid: any
   logging: any
   json_annotation: any

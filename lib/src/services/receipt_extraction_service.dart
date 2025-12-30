@@ -2,12 +2,14 @@ import 'package:logging/logging.dart';
 import 'package:pennypilot/src/data/models/transaction_model.dart';
 import 'package:pennypilot/src/data/models/receipt_line_item_model.dart';
 import 'package:pennypilot/src/services/merchant_normalization_service.dart';
+import 'package:pennypilot/src/services/llm_extraction_service.dart';
 
 class ReceiptExtractionService {
   final MerchantNormalizationService _merchantService;
+  final LLMExtractionService? _llmService;
   final _logger = Logger('ReceiptExtractionService');
 
-  ReceiptExtractionService(this._merchantService);
+  ReceiptExtractionService(this._merchantService, [this._llmService]);
 
   /// Extract receipt data from email content
   Future<ExtractionResult> extractReceiptData({
@@ -20,15 +22,11 @@ class ReceiptExtractionService {
 
     final result = ExtractionResult();
 
-    // Extract merchant name
+    // 1. Try Deterministic Extraction (Regex-based)
     final merchantExtraction = _extractMerchant(emailSubject, emailSender, emailBody);
     result.rawMerchantName = merchantExtraction.name;
     result.merchantConfidence = merchantExtraction.confidence;
 
-    // Normalize merchant name
-    result.merchantName = await _merchantService.normalizeMerchantName(result.rawMerchantName);
-
-    // Extract amounts
     final amountExtraction = _extractAmounts(emailBody, emailSubject);
     result.totalAmount = amountExtraction.total;
     result.subtotalAmount = amountExtraction.subtotal;
@@ -37,15 +35,39 @@ class ReceiptExtractionService {
     result.tipAmount = amountExtraction.tip;
     result.amountConfidence = amountExtraction.confidence;
 
-    // Extract date
     final dateExtraction = _extractDate(emailBody, emailSubject);
     result.date = dateExtraction.date;
     result.dateConfidence = dateExtraction.confidence;
 
-    // Extract line items (optional)
     final lineItems = _extractLineItems(emailBody);
     result.lineItems = lineItems;
     result.hasLineItems = lineItems.isNotEmpty;
+
+    // 2. If confidence is low, try LLM Extraction
+    if (_llmService != null && 
+        (result.merchantConfidence == ConfidenceLevel.low || 
+         result.totalAmount == 0)) {
+      _logger.info('Confidence low, trying LLM extraction...');
+      final llmResult = await _llmService.extractFromText('$emailSubject\n\n$emailBody');
+      
+      if (llmResult != null) {
+        if (llmResult.merchant != null && result.merchantConfidence == ConfidenceLevel.low) {
+          result.rawMerchantName = llmResult.merchant!;
+          result.merchantConfidence = ConfidenceLevel.medium; // LLM is medium-high
+        }
+        if (llmResult.amount != null && llmResult.amount! > 0 && result.totalAmount == 0) {
+          result.totalAmount = llmResult.amount!;
+          result.amountConfidence = ConfidenceLevel.medium;
+        }
+        if (llmResult.date != null && result.dateConfidence == ConfidenceLevel.low) {
+          result.date = llmResult.date!;
+          result.dateConfidence = ConfidenceLevel.medium;
+        }
+      }
+    }
+
+    // Normalize merchant name
+    result.merchantName = await _merchantService.normalizeMerchantName(result.rawMerchantName);
 
     // Calculate overall confidence
     result.overallConfidence = _calculateOverallConfidence(
