@@ -1,54 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pennypilot/src/presentation/providers/data_providers.dart';
-import 'package:pennypilot/src/presentation/providers/database_provider.dart';
+import 'package:pennypilot/src/presentation/providers/privacy_provider.dart';
+import 'package:pennypilot/src/presentation/providers/backup_provider.dart';
 import 'package:pennypilot/src/presentation/providers/auth_provider.dart';
-import 'package:pennypilot/src/presentation/providers/app_state_provider.dart';
-import 'package:isar/isar.dart';
-import 'package:pennypilot/src/data/local/database_service.dart';
-import 'package:pennypilot/src/data/models/transaction_model.dart';
-import 'package:pennypilot/src/data/models/subscription_model.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
-import 'package:intl/intl.dart';
+import 'package:pennypilot/src/services/backup_service.dart';
+import 'package:pennypilot/src/services/auth_service.dart';
 
-class PrivacySecurityScreen extends ConsumerStatefulWidget {
+class PrivacySecurityScreen extends ConsumerWidget {
   const PrivacySecurityScreen({super.key});
 
   @override
-  ConsumerState<PrivacySecurityScreen> createState() => _PrivacySecurityScreenState();
-}
-
-class _PrivacySecurityScreenState extends ConsumerState<PrivacySecurityScreen> {
-  bool _localOnlyMode = true;
-  bool _isExporting = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadPreferences();
-  }
-
-  Future<void> _loadPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _localOnlyMode = prefs.getBool('local_only_mode') ?? true;
-    });
-  }
-
-  Future<void> _saveLocalOnlyMode(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('local_only_mode', value);
-    setState(() {
-      _localOnlyMode = value;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final dbService = ref.watch(databaseServiceProvider);
+    final privacyService = ref.watch(privacyServiceProvider);
+    final backupService = ref.watch(backupServiceProvider);
+    final authService = ref.read(authServiceProvider);
+
+    final isLocalOnly = ref.watch(isLocalOnlyModeProvider);
+    final isBiometric = ref.watch(isBiometricEnabledProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -56,461 +25,148 @@ class _PrivacySecurityScreenState extends ConsumerState<PrivacySecurityScreen> {
       ),
       body: ListView(
         children: [
-          // Privacy Mode Section
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              'Privacy Settings',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.primary,
-              ),
-            ),
-          ),
-          
-          SwitchListTile(
-            title: const Text('Local-Only Mode'),
-            subtitle: const Text('All data stays on your device (except email fetching)'),
-            value: _localOnlyMode,
-            onChanged: (value) {
-              _saveLocalOnlyMode(value);
-            },
-            secondary: Icon(
-              Icons.cloud_off,
-              color: theme.colorScheme.primary,
-            ),
-          ),
-
-          const Divider(),
-
-          // Data Management Section
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              'Data Management',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.primary,
-              ),
-            ),
-          ),
-
-          ListTile(
-            leading: Icon(
-              Icons.psychology_outlined,
-              color: theme.colorScheme.tertiary,
-            ),
-            title: const Text('Reset AI Understanding'),
-            subtitle: const Text('Clear derived data, keep raw transactions'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showResetAIDialog(context, dbService),
-          ),
-
-          ListTile(
-            leading: Icon(
-              Icons.download,
-              color: theme.colorScheme.primary,
-            ),
-            title: const Text('Export My Data'),
-            subtitle: const Text('Download JSON or CSV format'),
-            trailing: _isExporting
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.chevron_right),
-            onTap: _isExporting ? null : () => _showExportDialog(context),
-          ),
-
-          const Divider(),
-
-          // Account Management Section
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              'Account Management',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.primary,
-              ),
-            ),
-          ),
-
-          ListTile(
-            leading: Icon(
-              Icons.key_off,
-              color: theme.colorScheme.error,
-            ),
-            title: const Text('Clear Email Tokens'),
-            subtitle: const Text('Disconnect all email accounts'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showClearTokensDialog(context),
-          ),
-
-          ListTile(
-            leading: Icon(
-              Icons.refresh,
-              color: theme.colorScheme.error,
-            ),
-            title: const Text('Reset Financial Data'),
-            subtitle: const Text('Clear transactions & receipts (keeps accounts)'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showResetFinancialDataDialog(context, dbService),
-          ),
-
-          ListTile(
-            leading: Icon(
-              Icons.delete_forever,
-              color: theme.colorScheme.error,
-            ),
-            title: const Text('Factory Reset'),
-            subtitle: const Text('Wipe everything including accounts'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showFactoryResetDialog(context, dbService),
-          ),
-
-          const Divider(),
-
-          // Storage Info
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              'Storage Information',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.primary,
-              ),
-            ),
-          ),
-
-          FutureBuilder<String>(
-            future: dbService.getDatabasePath(),
+          // Security Section
+          _buildSectionHeader(context, 'Security'),
+          FutureBuilder<bool>(
+            future: privacyService.canCheckBiometrics(),
             builder: (context, snapshot) {
-              return ListTile(
-                leading: const Icon(Icons.storage),
-                title: const Text('Database Location'),
-                subtitle: Text(
-                  snapshot.data ?? 'Loading...',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontFamily: 'monospace',
-                  ),
-                ),
+              final canDoBiometrics = snapshot.data ?? false;
+              return SwitchListTile(
+                title: const Text('Biometric Lock'),
+                subtitle: Text(canDoBiometrics 
+                  ? 'Require authentication to open the app' 
+                  : 'Biometrics not available on this device'),
+                value: isBiometric,
+                onChanged: canDoBiometrics ? (value) async {
+                  if (value) {
+                    final success = await privacyService.authenticate();
+                    if (!success) return;
+                  }
+                  await privacyService.setBiometricEnabled(value);
+                  ref.read(isBiometricEnabledProvider.notifier).state = value;
+                } : null,
+                secondary: Icon(Icons.fingerprint, color: theme.colorScheme.primary),
               );
             },
           ),
-
-          const SizedBox(height: 32),
-        ],
-      ),
-    );
-  }
-
-  void _showDestructiveConfirmationDialog({
-    required BuildContext context,
-    required String title,
-    required String content,
-    required IconData icon,
-    required Color iconColor,
-    required String confirmationText,
-    required Future<void> Function() onConfirm,
-    VoidCallback? onCancel,
-  }) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        icon: Icon(
-          icon,
-          color: iconColor,
-          size: 32,
-        ),
-        title: Text(title),
-        content: Text(content),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onCancel?.call();
+          SwitchListTile(
+            title: const Text('Local-Only Mode'),
+            subtitle: const Text('Disable all external connections except for OAuth authentication.'),
+            value: isLocalOnly,
+            onChanged: (value) async {
+              await privacyService.setLocalOnlyMode(value);
+              ref.read(isLocalOnlyModeProvider.notifier).state = value;
             },
-            child: const Text('Cancel'),
+            secondary: Icon(Icons.cloud_off, color: theme.colorScheme.primary),
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: iconColor,
-            ),
-            onPressed: () async {
-              Navigator.pop(context);
+
+          const Divider(),
+
+          // Data Export Section
+          _buildSectionHeader(context, 'Data Management'),
+          ListTile(
+            leading: Icon(Icons.file_download, color: theme.colorScheme.primary),
+            title: const Text('Export JSON'),
+            subtitle: const Text('Download all data in machine-readable format'),
+            onTap: () async {
               try {
-                await onConfirm();
+                // Using existing exportBackup (encrypted if passphrase provided, plain if not)
+                await backupService.exportBackup(); 
               } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
+                _showError(context, e.toString());
               }
             },
-            child: Text(confirmationText),
           ),
+          ListTile(
+            leading: Icon(Icons.table_chart, color: theme.colorScheme.primary),
+            title: const Text('Export CSV'),
+            subtitle: const Text('Open your transactions in Excel or Google Sheets'),
+            onTap: () async {
+              try {
+                await backupService.exportToCsv();
+              } catch (e) {
+                _showError(context, e.toString());
+              }
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.upload_file, color: theme.colorScheme.secondary),
+            title: const Text('Import Backup'),
+            subtitle: const Text('Restore from a previously exported .isar file'),
+            onTap: () async {
+              try {
+                await backupService.importBackup();
+              } catch (e) {
+                _showError(context, e.toString());
+              }
+            },
+          ),
+
+          const Divider(),
+
+          // Danger Zone Section
+          _buildSectionHeader(context, 'Danger Zone', isError: true),
+          ListTile(
+            leading: Icon(Icons.delete_forever, color: theme.colorScheme.error),
+            title: Text('Nuclear Wipe', style: TextStyle(color: theme.colorScheme.error)),
+            subtitle: const Text('Delete all transactions, categories, and disconnect accounts.'),
+            onTap: () => _showWipeConfirmation(context, ref, backupService, authService),
+          ),
+          
+          const SizedBox(height: 40),
         ],
       ),
     );
   }
 
-  void _showResetAIDialog(BuildContext context, DatabaseService dbService) {
-    _showDestructiveConfirmationDialog(
-      context: context,
-      title: 'Reset AI Understanding?',
-      content: 'This will clear:\n'
-          '• Extraction confidence scores\n'
-          '• Merchant normalizations (system only)\n'
-          '• Derived metadata\n\n'
-          'Your raw transaction data will be preserved.\n'
-          'User-defined rules will be kept.',
-      icon: Icons.psychology_outlined,
-      iconColor: Theme.of(context).colorScheme.tertiary,
-      confirmationText: 'Reset',
-      onConfirm: () async {
-        await dbService.resetAIUnderstanding();
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('AI understanding reset successfully'),
-              backgroundColor: Colors.green,
+  Widget _buildSectionHeader(BuildContext context, String title, {bool isError = false}) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+      child: Text(
+        title.toUpperCase(),
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: isError ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
             ),
-          );
-        }
-      },
+      ),
     );
   }
 
-  void _showExportDialog(BuildContext context) {
+  void _showWipeConfirmation(BuildContext context, WidgetRef ref, BackupService backupService, AuthService authService) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        icon: const Icon(Icons.download, size: 32),
-        title: const Text('Export Data'),
-        content: const Text('Choose export format:'),
+        title: const Text('Are you absolutely sure?'),
+        content: const Text(
+          'This is the Nuclear Option. It will permanently delete all your local data and disconnect your email accounts.\n\nThis action cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _exportData('json');
-            },
-            child: const Text('JSON'),
-          ),
           FilledButton(
-            onPressed: () {
+            style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
+            onPressed: () async {
               Navigator.pop(context);
-              _exportData('csv');
+              await backupService.nuclearWipe(authService);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('All data has been wiped.')),
+                );
+              }
             },
-            child: const Text('CSV'),
+            child: const Text('WIPE EVERYTHING'),
           ),
         ],
       ),
     );
   }
 
-  Future<void> _exportData(String format) async {
-    setState(() {
-      _isExporting = true;
-    });
-
-    try {
-      final isar = ref.read(isarProvider);
-      final transactions = await isar.transactionModels.where().findAll();
-      final subscriptions = await isar.subscriptionModels.where().findAll();
-
-      String content;
-      String filename;
-
-      if (format == 'json') {
-        final data = {
-          'exported_at': DateTime.now().toIso8601String(),
-          'app': 'PennyPilot',
-          'version': '1.0.0',
-          'transactions': transactions.map((t) => {
-            'id': t.id,
-            'merchant': t.merchantName,
-            'raw_merchant': t.rawMerchantName,
-            'amount': t.amount,
-            'date': t.date.toIso8601String(),
-            'category': t.category,
-            'confidence': t.extractionConfidence.name,
-            'currency': t.currency,
-          }).toList(),
-          'subscriptions': subscriptions.map((s) => {
-            'id': s.id,
-            'service': s.serviceName,
-            'amount': s.amount,
-            'frequency': s.frequency.name,
-            'lifecycle': s.lifecycleState.name,
-            'next_renewal': s.nextRenewalDate.toIso8601String(),
-            'consistency': s.frequencyConsistency,
-          }).toList(),
-        };
-        
-        content = const JsonEncoder.withIndent('  ').convert(data);
-        filename = 'pennypilot_export_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.json';
-      } else {
-        // CSV format
-        final buffer = StringBuffer();
-        buffer.writeln('Type,Date,Merchant,Amount,Category,Currency');
-        
-        for (var t in transactions) {
-          buffer.writeln(
-            'Transaction,'
-            '${DateFormat('yyyy-MM-dd').format(t.date)},'
-            '"${t.merchantName}",'
-            '${t.amount},'
-            '"${t.category ?? ''}",'
-            '${t.currency}',
-          );
-        }
-        
-        content = buffer.toString();
-        filename = 'pennypilot_export_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
-      }
-
-      // Share the file
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile.fromData(
-            utf8.encode(content),
-            mimeType: format == 'json' ? 'application/json' : 'text/csv',
-            name: filename,
-          )],
-          subject: 'PennyPilot Data Export',
-        ),
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Exported ${transactions.length} transactions'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Export failed: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isExporting = false;
-        });
-      }
-    }
-  }
-
-  void _showClearTokensDialog(BuildContext context) {
-    _showDestructiveConfirmationDialog(
-      context: context,
-      title: 'Clear Email Tokens?',
-      content: 'This will disconnect all email accounts. You will need to sign in again to fetch new receipts.',
-      icon: Icons.key_off,
-      iconColor: Colors.orange,
-      confirmationText: 'Clear Tokens',
-      onConfirm: () async {
-        final authService = ref.read(authServiceProvider);
-        await authService.signOut();
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Email accounts disconnected and tokens cleared'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-      },
+  void _showError(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Theme.of(context).colorScheme.error),
     );
-  }
-
-  void _showResetFinancialDataDialog(BuildContext context, DatabaseService dbService) {
-    _showDestructiveConfirmationDialog(
-      context: context,
-      title: 'Reset Financial Data?',
-      content: 'This will delete:\n'
-          '• All transactions\n'
-          '• All subscriptions\n'
-          '• All receipts\n'
-          '• Extraction metadata\n\n'
-          'This will preserve:\n'
-          '✓ Connected email accounts\n'
-          '✓ Categories\n'
-          '✓ App settings\n\n'
-          'This action cannot be undone!',
-      icon: Icons.refresh,
-      iconColor: Colors.orange,
-      confirmationText: 'Reset Data',
-      onConfirm: () async {
-        await dbService.resetFinancialData();
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Financial data reset successfully'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-      },
-    );
-  }
-
-  void _showFactoryResetDialog(BuildContext context, DatabaseService dbService) {
-    _showDestructiveConfirmationDialog(
-        context: context,
-        title: 'Factory Reset?',
-        content: '⚠️ DANGER ZONE ⚠️\n\n'
-            'This will PERMANENTLY delete:\n'
-            '• All transactions\n'
-            '• All subscriptions\n'
-            '• All receipts\n'
-            '• All connected email accounts\n'
-            '• All categories\n'
-            '• All settings\n'
-            '• Onboarding status\n\n'
-            'The app will reset to factory defaults.\n\n'
-            'This action CANNOT be undone!',
-        icon: Icons.warning,
-        iconColor: Theme.of(context).colorScheme.error,
-        confirmationText: 'Continue',
-        onConfirm: () async {
-          _showDestructiveConfirmationDialog(
-            context: context,
-            title: 'Are you absolutely sure?',
-            content: 'This is your last chance to cancel.\n\n'
-                'All your data will be permanently deleted.\n\n'
-                'Tap "Factory Reset" to confirm.',
-            icon: Icons.error,
-            iconColor: Theme.of(context).colorScheme.error,
-            confirmationText: 'Factory Reset',
-            onConfirm: () async {
-              await dbService.wipeData();
-              final authService = ref.read(authServiceProvider);
-              await authService.signOut();
-              await ref.read(appStateProvider.notifier).factoryResetAppState();
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Factory reset complete - please restart the app'),
-                    backgroundColor: Colors.red,
-                    duration: Duration(seconds: 5),
-                  ),
-                );
-              }
-            },
-          );
-        });
   }
 }

@@ -26,42 +26,79 @@ class SafeToSpend extends ConsumerWidget {
         }
         return Card(
           elevation: 0,
+          clipBehavior: Clip.antiAlias,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withAlpha(50)),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
-                  child: Icon(Icons.bolt, color: Theme.of(context).colorScheme.onTertiaryContainer),
+                Row(
+                  children: [
+                    Icon(Icons.auto_awesome, 
+                      size: 20, 
+                      color: Theme.of(context).colorScheme.tertiary
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Safe-to-Spend',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.tertiary,
+                          ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Safe-to-Spend Today',
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                const SizedBox(height: 16),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      currencyFormat.format(result.dailySafeAmount),
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(width: 8),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4.0),
+                      child: Text(
+                        'today',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                       ),
-                      Text(
-                        currencyFormat.format(result.dailySafeAmount),
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                Text(
-                  '${currencyFormat.format(result.remainingMonthly)} left this month',
-                  style: Theme.of(context).textTheme.bodySmall,
+                const SizedBox(height: 16),
+                LinearProgressIndicator(
+                  value: result.monthlyBudget > 0 ? (result.remainingMonthly / result.monthlyBudget).clamp(0, 1) : 0,
+                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(10),
+                  minHeight: 8,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Remaining this month:',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                    Text(
+                      currencyFormat.format(result.remainingMonthly),
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                    ),
+                  ],
                 ),
               ],
             ),

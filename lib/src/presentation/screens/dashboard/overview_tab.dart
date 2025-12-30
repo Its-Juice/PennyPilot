@@ -4,10 +4,12 @@ import 'package:pennypilot/src/presentation/providers/data_providers.dart';
 import 'package:pennypilot/src/presentation/providers/email_provider.dart';
 import 'package:pennypilot/src/presentation/providers/navigation_provider.dart';
 import 'package:pennypilot/src/presentation/screens/auth/connect_email_screen.dart';
-import 'package:pennypilot/src/presentation/widgets/balance_header.dart';
 import 'package:pennypilot/src/presentation/widgets/categories_scroller.dart';
 import 'package:pennypilot/src/presentation/widgets/safe_to_spend.dart';
 import 'package:pennypilot/src/presentation/widgets/spending_pulse_chart.dart';
+import 'package:pennypilot/src/presentation/widgets/spending_summary_card.dart';
+import 'package:pennypilot/src/presentation/widgets/category_pie_chart.dart';
+import 'package:pennypilot/src/presentation/widgets/status_dialogs.dart';
 import 'package:intl/intl.dart';
 import 'package:pennypilot/src/presentation/providers/app_state_provider.dart';
 
@@ -44,17 +46,24 @@ class OverviewTab extends ConsumerWidget {
             tooltip: 'Scan Emails',
             onPressed: () async {
               try {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Scanning emails...')),
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => const ScanningDialog(),
                 );
-                await ref.read(emailServiceProvider).scanEmails();
+                
+                final count = await ref.read(emailServiceProvider).scanEmails();
+                
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Scan complete')),
+                  Navigator.of(context).pop(); // Close scanning dialog
+                  showDialog(
+                    context: context,
+                    builder: (context) => SuccessDialog(count: count),
                   );
                 }
               } catch (e) {
                 if (context.mounted) {
+                  Navigator.of(context).pop(); // Close scanning dialog if open
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Error scanning: $e'), backgroundColor: Colors.red),
                   );
@@ -70,9 +79,15 @@ class OverviewTab extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const BalanceHeader(),
-            const SizedBox(height: 16),
+            const SpendingSummaryCard(),
+            const SizedBox(height: 24),
             const SafeToSpend(),
+            const SizedBox(height: 24),
+            Text(
+              'Spending by Category',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const CategoryPieChart(),
             const SizedBox(height: 24),
             const CategoriesScroller(),
             const SizedBox(height: 24),

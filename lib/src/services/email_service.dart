@@ -6,6 +6,7 @@ import 'package:pennypilot/src/services/auth_service.dart';
 import 'package:pennypilot/src/services/receipt_extraction_service.dart';
 import 'package:pennypilot/src/services/subscription_intelligence_service.dart';
 import 'package:pennypilot/src/services/categorization_service.dart';
+import 'package:pennypilot/src/services/privacy_service.dart';
 import 'package:pennypilot/src/data/models/transaction_model.dart';
 import 'package:pennypilot/src/data/models/receipt_line_item_model.dart';
 
@@ -14,6 +15,7 @@ class EmailService {
   final ReceiptExtractionService _receiptExtractionService;
   final SubscriptionIntelligenceService _subscriptionService;
   final CategorizationService _categorizationService;
+  final PrivacyService _privacyService;
   final Isar _isar;
   final _logger = Logger('EmailService');
 
@@ -22,26 +24,35 @@ class EmailService {
     this._receiptExtractionService,
     this._subscriptionService,
     this._categorizationService,
+    this._privacyService,
     this._isar,
   );
 
   /// Scan connected email accounts for receipts and invoices
-  Future<void> scanEmails() async {
+  Future<int> scanEmails() async {
+    if (_privacyService.isLocalOnlyMode) {
+      _logger.info('Local-only mode enabled. Skipping email scan.');
+      return 0;
+    }
+
     final emails = _authService.connectedEmails;
     if (emails.isEmpty) {
       _logger.warning('No connected email accounts to scan');
-      return;
+      return 0;
     }
 
+    int totalFound = 0;
     try {
       for (final email in emails) {
-        await scanAccount(email);
+        final results = await scanAccount(email);
+        totalFound += results.length;
         await _authService.setLastSyncTime(email, DateTime.now());
       }
       
       // After scanning all accounts, run subscription intelligence
       await _subscriptionService.detectSubscriptions();
       
+      return totalFound;
     } catch (e, stack) {
       _logger.severe('Error scanning emails', e, stack);
       rethrow;

@@ -3,9 +3,13 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pennypilot/src/data/local/database_service.dart';
+import 'package:pennypilot/src/services/auth_service.dart';
 import 'package:logging/logging.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:isar/isar.dart';
+import 'package:csv/csv.dart';
+import 'package:pennypilot/src/data/models/transaction_model.dart';
 
 class BackupService {
   final DatabaseService _databaseService;
@@ -26,7 +30,7 @@ class BackupService {
       
       if (passphrase == null || passphrase.isEmpty) {
         // Plain export
-        await SharePlus.instance.share(ShareParams(files: [XFile(dbPath)], text: 'PennyPilot Backup'));
+        await Share.shareXFiles([XFile(dbPath)], text: 'PennyPilot Backup');
       } else {
         // Encrypted export
         final encryptedData = await _encryptData(dbBytes, passphrase);
@@ -34,11 +38,63 @@ class BackupService {
         final encryptedFile = File('${tempDir.path}/pennypilot_backup.enc');
         await encryptedFile.writeAsBytes(encryptedData);
         
-        await SharePlus.instance.share(ShareParams(files: [XFile(encryptedFile.path)], text: 'PennyPilot Encrypted Backup'));
+        await Share.shareXFiles([XFile(encryptedFile.path)], text: 'PennyPilot Encrypted Backup');
         _logger.info('Encrypted backup exported');
       }
     } catch (e) {
       _logger.severe('Export failed', e);
+      rethrow;
+    }
+  }
+
+  Future<void> exportToCsv() async {
+    try {
+      final isar = await _databaseService.db;
+      final transactions = await isar.transactionModels.where().findAll();
+      
+      final List<List<dynamic>> rows = [
+        ['Date', 'Merchant', 'Amount', 'Currency', 'Category ID', 'Confidence', 'Items']
+      ];
+
+      for (final t in transactions) {
+        rows.add([
+          t.date.toIso8601String(),
+          t.merchantName,
+          t.amount,
+          t.currency,
+          t.categoryId ?? '',
+          t.extractionConfidence.name,
+          t.hasLineItems ? 'Yes' : 'No',
+        ]);
+      }
+
+      final csvData = const ListToCsvConverter().convert(rows);
+      final tempDir = await getTemporaryDirectory();
+      final csvFile = File('${tempDir.path}/pennypilot_transactions.csv');
+      await csvFile.writeAsString(csvData);
+
+      await Share.shareXFiles([XFile(csvFile.path)], text: 'PennyPilot Transactions CSV');
+    } catch (e) {
+      _logger.severe('CSV Export failed', e);
+      rethrow;
+    }
+  }
+
+  /// The "Nuclear Option": Delete all data and close connections
+  Future<void> nuclearWipe(AuthService authService) async {
+    try {
+      _logger.warning('EXECUTING NUCLEAR WIPE');
+      
+      // 1. Revoke OAuth Tokens and clear secure storage
+      await authService.signOut();
+      
+      // 2. Clear Isar Database
+      final isar = await _databaseService.db;
+      await isar.writeTxn(() => isar.clear());
+      
+      _logger.info('Nuclear wipe complete');
+    } catch (e) {
+      _logger.severe('Nuclear wipe failed', e);
       rethrow;
     }
   }

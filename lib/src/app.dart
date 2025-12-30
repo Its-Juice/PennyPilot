@@ -7,6 +7,8 @@ import 'package:dynamic_color/dynamic_color.dart';
 import 'package:pennypilot/src/presentation/screens/onboarding/onboarding_screen.dart';
 import 'package:pennypilot/src/presentation/screens/dashboard/dashboard_screen.dart';
 
+import 'package:pennypilot/src/presentation/widgets/biometric_gate.dart';
+
 class PennyPilotApp extends ConsumerWidget {
   const PennyPilotApp({super.key});
 
@@ -26,7 +28,9 @@ class PennyPilotApp extends ConsumerWidget {
           theme: AppTheme.lightTheme(lightDynamic),
           darkTheme: AppTheme.darkTheme(darkDynamic, isOled: themeState.isOledMode),
           themeMode: themeState.mode,
-          home: hasCompletedOnboarding ? const DashboardScreen() : const OnboardingScreen(),
+          home: BiometricGate(
+            child: hasCompletedOnboarding ? const DashboardScreen() : const OnboardingScreen(),
+          ),
         );
       },
     );

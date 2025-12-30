@@ -20,24 +20,24 @@ This document outlines the roadmap for improving PennyPilot, focusing on stabili
 - [x] **Subscription Detection**: Implement logic to categorize recurring transactions and predict next billing dates.
 - [x] **HTML Cleaning**: Refine the HTML-to-Text stripping logic to handle complex email layouts (tables, nested divs) more reliably.
 
-## 🔵 Phase 3: Premium UI/UX (Experience)
+## � Phase 3: Premium UI/UX (Completed)
 *Goal: Make the app feel like a top-tier Material 3 application.*
 
-- [ ] **Material You (Dynamic Color)**: Fully implement `dynamic_color` so the app theme matches the user's wallpaper on Android 12+.
-- [ ] **Micro-animations**: Add subtle Lottie or Rive animations for "Email Scanning" and "Transaction Success" states.
-- [ ] **Financial Dashboard**:
-    - [ ] Add spending category breakdown (Pie Charts via `fl_chart`).
-    - [ ] Add monthly spending trends (Line/Bar Charts).
-    - [ ] Create a "Net Worth" or "Total Spent This Month" summary widget.
-- [ ] **Onboarding Flow**: Build a premium multi-step onboarding process explaining local-first privacy.
+- [x] **Material You (Dynamic Color)**: Fully implement `dynamic_color` so the app theme matches the user's wallpaper on Android 12+.
+- [x] **Micro-animations**: Add subtle Lottie or Rive animations for "Email Scanning" and "Transaction Success" states.
+- [x] **Financial Dashboard**:
+    - [x] Add spending category breakdown (Pie Charts via `fl_chart`).
+    - [x] Add monthly spending trends (Line/Bar Charts).
+    - [x] Create a "Net Worth" or "Total Spent This Month" summary widget.
+- [x] **Onboarding Flow**: Build a premium multi-step onboarding process explaining local-first privacy.
 
-## 🟣 Phase 4: Privacy & Data (Integrity)
+## � Phase 4: Privacy & Data (Completed)
 *Goal: Empower users with their data.*
 
-- [ ] **Local-Only Mode**: A toggle to completely disable any external pings (except for OAuth).
-- [ ] **Export/Import**: Support exporting data to CSV/JSON and importing Isar backups.
-- [ ] **Data Wipe**: A "Nuclear Option" to instantly delete all local data and revoke OAuth tokens.
-- [ ] **Biometric Lock**: Optional App Lock using Fingerprint/FaceID.
+- [x] **Local-Only Mode**: A toggle to completely disable any external pings (except for OAuth).
+- [x] **Export/Import**: Support exporting data to CSV/JSON and importing Isar backups.
+- [x] **Data Wipe**: A "Nuclear Option" to instantly delete all local data and revoke OAuth tokens.
+- [x] **Biometric Lock**: Optional App Lock using Fingerprint/FaceID.
 
 ## 🟠 Phase 5: DevOps & Community (Growth)
 *Goal: Scale the FOSS project.*

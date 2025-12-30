@@ -131,4 +131,6 @@ class SafeToSpendResult {
     this.spentSoFar = 0,
     this.upcomingSubs = 0,
   });
+
+  double get monthlyBudget => totalLimit;
 }
