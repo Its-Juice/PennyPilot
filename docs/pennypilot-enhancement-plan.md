@@ -45,7 +45,7 @@ This document outlines the roadmap for improving PennyPilot, focusing on stabili
 - [x] **GitHub Actions Fix**: Automated `secrets.dart` generation in CI.
 - [x] **Automated Testing**: >70% test coverage for core services (`EmailService`, `DatabaseService`, `BudgetService`).
 - [x] **Contribution Guide**: Created `CONTRIBUTING.md`.
-- [x] **Documentation**: Enhanced `README.md` and created release notes for `v1.0.0-alpha.1.9`.
+- [x] **Documentation**: Enhanced `README.md` and created release notes for `v1.0.0-alpha.1.10`.
 
 ---
 
