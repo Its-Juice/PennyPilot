@@ -63,8 +63,8 @@ jobs:
         run: flutter pub run flutter_launcher_icons
 
       - name: Make gradlew executable
+        working-directory: android
         run: |
-          cd android
           chmod +x gradlew
           # Fix potential line ending issues
           sed -i 's/\r$//' gradlew
