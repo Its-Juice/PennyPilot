@@ -62,19 +62,12 @@ jobs:
       - name: Generate Launcher Icons
         run: flutter pub run flutter_launcher_icons
 
-      - name: Make gradlew executable
-        working-directory: android
-        run: |
-          chmod +x gradlew
-          # Fix potential line ending issues
-          sed -i 's/\r$//' gradlew
 
       - name: Build APK
-        working-directory: android
-        run: ./gradlew :app:assembleRelease -x test -x lint
+        run: flutter build apk --release
 
       - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
           name: pennypilot-release-apks
-          path: build/app/outputs/apk/release/app-*-release.apk
+          path: build/app/outputs/flutter-apk/app-release.apk
