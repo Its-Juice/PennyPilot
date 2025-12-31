@@ -38,7 +38,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(24),
         ),
         clipBehavior: Clip.antiAlias,
         color: scheme.surfaceContainerLow,
@@ -138,7 +138,7 @@ class AppTheme {
       // Navigation bar theming
       navigationBarTheme: NavigationBarThemeData(
         height: 80,
-        elevation: 3,
+        elevation: 0,
         backgroundColor: scheme.surface,
         indicatorColor: scheme.secondaryContainer,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
@@ -225,7 +225,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(24),
           side: isOled ? BorderSide(color: scheme.outlineVariant.withAlpha(128), width: 0.5) : BorderSide.none,
         ),
         clipBehavior: Clip.antiAlias,
@@ -326,8 +326,8 @@ class AppTheme {
       // Navigation bar theming
       navigationBarTheme: NavigationBarThemeData(
         height: 80,
-        elevation: 3,
-        backgroundColor: scheme.surface,
+        elevation: 0,
+        backgroundColor: isOled ? Colors.black : scheme.surface,
         indicatorColor: scheme.secondaryContainer,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {

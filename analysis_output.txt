@@ -1,0 +1,108 @@
+Resolving dependencies...
+Downloading packages...
+  _fe_analyzer_shared 61.0.0 (92.0.0 available)
+  analyzer 5.13.0 (9.0.0 available)
+  analyzer_plugin 0.11.2 (0.13.11 available)
+  build 2.4.1 (4.0.3 available)
+  build_config 1.1.2 (1.2.0 available)
+  build_resolvers 2.4.2 (3.0.4 available)
+  build_runner 2.4.13 (2.10.4 available)
+  build_runner_core 7.3.2 (9.3.2 available)
+  characters 1.4.0 (1.4.1 available)
+  cli_config 0.1.2 (0.2.0 available)
+  custom_lint_core 0.6.3 (0.8.1 available)
+  dart_style 2.3.2 (3.1.3 available)
+  flutter_riverpod 2.6.1 (3.1.0 available)
+  freezed_annotation 2.4.4 (3.1.0 available)
+  google_sign_in 6.3.0 (7.2.0 available)
+  google_sign_in_android 6.2.1 (7.2.7 available)
+  google_sign_in_ios 5.9.0 (6.2.4 available)
+  google_sign_in_platform_interface 2.5.0 (3.1.0 available)
+  google_sign_in_web 0.12.4+4 (1.1.0 available)
+  googleapis 11.4.0 (15.0.0 available)
+  js 0.6.7 (0.7.2 available)
+  json_serializable 6.8.0 (6.11.3 available)
+  matcher 0.12.17 (0.12.18 available)
+  material_color_utilities 0.11.1 (0.13.0 available)
+  mockito 5.4.4 (5.6.1 available)
+  native_assets_cli 0.3.2 (0.18.0 available)
+  native_toolchain_c 0.3.3 (0.17.4 available)
+  riverpod 2.6.1 (3.1.0 available)
+  riverpod_analyzer_utils 0.5.1 (0.5.10 available)
+  riverpod_annotation 2.6.1 (4.0.0 available)
+  riverpod_generator 2.4.0 (4.0.0+1 available)
+  shelf_web_socket 2.0.1 (3.0.0 available)
+  source_gen 1.5.0 (4.1.1 available)
+  source_helper 1.3.5 (1.3.9 available)
+  test_api 0.7.7 (0.7.8 available)
+Got dependencies!
+35 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Analyzing PennyPilot...                                         
+
+  error • Target of URI doesn't exist: 'package:flutter_gen/gen_l10n/app_localizations.dart' • lib/src/app.dart:8:8 • uri_does_not_exist
+  error • The values in a const list literal must be constants • lib/src/app.dart:34:13 • non_constant_list_element
+  error • Undefined name 'AppLocalizations' • lib/src/app.dart:34:13 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/app.dart:39:29 • undefined_identifier
+  error • Target of URI doesn't exist: 'package:flutter_gen/gen_l10n/app_localizations.dart' • lib/src/presentation/screens/auth/connect_email_screen.dart:5:8 • uri_does_not_exist
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/auth/connect_email_screen.dart:14:21 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/auth/connect_email_screen.dart:22:15 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/auth/connect_email_screen.dart:29:22 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/auth/connect_email_screen.dart:37:46 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/auth/connect_email_screen.dart:48:46 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/auth/connect_email_screen.dart:57:22 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/auth/connect_email_screen.dart:66:22 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/auth/connect_email_screen.dart:82:27 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/auth/connect_email_screen.dart:86:15 • undefined_identifier
+  error • Target of URI doesn't exist: 'package:flutter_gen/gen_l10n/app_localizations.dart' • lib/src/presentation/screens/dashboard/dashboard_screen.dart:9:8 • uri_does_not_exist
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/dashboard/dashboard_screen.dart:39:18 • undefined_identifier
+  error • Target of URI doesn't exist: 'package:flutter_gen/gen_l10n/app_localizations.dart' • lib/src/presentation/screens/dashboard/overview_tab.dart:15:8 • uri_does_not_exist
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/dashboard/overview_tab.dart:32:18 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/dashboard/overview_tab.dart:201:18 • undefined_identifier
+  error • Target of URI doesn't exist: 'package:flutter_gen/gen_l10n/app_localizations.dart' • lib/src/presentation/screens/insights/insights_screen.dart:9:8 • uri_does_not_exist
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/insights/insights_screen.dart:28:21 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/insights/insights_screen.dart:34:47 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/insights/insights_screen.dart:37:45 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/insights/insights_screen.dart:48:18 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/insights/insights_screen.dart:126:18 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/insights/insights_screen.dart:183:20 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/insights/insights_screen.dart:222:30 • undefined_identifier
+  error • Target of URI doesn't exist: 'package:flutter_gen/gen_l10n/app_localizations.dart' • lib/src/presentation/screens/onboarding/onboarding_screen.dart:6:8 • uri_does_not_exist
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/onboarding/onboarding_screen.dart:34:18 • undefined_identifier
+  error • Target of URI doesn't exist: 'package:flutter_gen/gen_l10n/app_localizations.dart' • lib/src/presentation/screens/settings/settings_screen.dart:14:8 • uri_does_not_exist
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/settings/settings_screen.dart:27:18 • undefined_identifier
+  error • Undefined class 'AppLocalizations' • lib/src/presentation/screens/settings/settings_screen.dart:157:51 • undefined_class
+  error • Undefined class 'AppLocalizations' • lib/src/presentation/screens/settings/settings_screen.dart:191:52 • undefined_class
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/settings/settings_screen.dart:220:17 • undefined_identifier
+  error • Target of URI doesn't exist: 'package:flutter_gen/gen_l10n/app_localizations.dart' • lib/src/presentation/screens/subscriptions/add_subscription_sheet.dart:7:8 • uri_does_not_exist
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/subscriptions/add_subscription_sheet.dart:79:34 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/subscriptions/add_subscription_sheet.dart:85:34 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/subscriptions/add_subscription_sheet.dart:99:18 • undefined_identifier
+  error • Target of URI doesn't exist: 'package:flutter_gen/gen_l10n/app_localizations.dart' • lib/src/presentation/screens/subscriptions/subscriptions_screen.dart:10:8 • uri_does_not_exist
+warning • The value of the local variable 'theme' isn't used • lib/src/presentation/screens/subscriptions/subscriptions_screen.dart:34:11 • unused_local_variable
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/subscriptions/subscriptions_screen.dart:37:18 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/subscriptions/subscriptions_screen.dart:156:18 • undefined_identifier
+  error • Target of URI doesn't exist: 'package:flutter_gen/gen_l10n/app_localizations.dart' • lib/src/presentation/screens/transactions/add_transaction_sheet.dart:8:8 • uri_does_not_exist
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/transactions/add_transaction_sheet.dart:107:34 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/transactions/add_transaction_sheet.dart:113:34 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/transactions/add_transaction_sheet.dart:128:18 • undefined_identifier
+  error • Invalid constant value • lib/src/presentation/screens/transactions/add_transaction_sheet.dart:175:37 • invalid_constant
+   info • Unnecessary 'const' keyword • lib/src/presentation/screens/transactions/add_transaction_sheet.dart:176:31 • unnecessary_const
+  error • Invalid constant value • lib/src/presentation/screens/transactions/add_transaction_sheet.dart:180:37 • invalid_constant
+   info • Unnecessary 'const' keyword • lib/src/presentation/screens/transactions/add_transaction_sheet.dart:181:31 • unnecessary_const
+  error • Target of URI doesn't exist: 'package:flutter_gen/gen_l10n/app_localizations.dart' • lib/src/presentation/screens/transactions/transactions_screen.dart:14:8 • uri_does_not_exist
+warning • The value of the local variable 'theme' isn't used • lib/src/presentation/screens/transactions/transactions_screen.dart:38:11 • unused_local_variable
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/transactions/transactions_screen.dart:40:18 • undefined_identifier
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/screens/transactions/transactions_screen.dart:227:18 • undefined_identifier
+warning • The declaration '_buildSummaryItem' isn't referenced • lib/src/presentation/screens/transactions/transactions_screen.dart:294:10 • unused_element
+  error • Undefined name 'l10n' • lib/src/presentation/screens/transactions/transactions_screen.dart:366:19 • undefined_identifier
+  error • Undefined name 'l10n' • lib/src/presentation/screens/transactions/transactions_screen.dart:372:19 • undefined_identifier
+  error • Undefined name 'l10n' • lib/src/presentation/screens/transactions/transactions_screen.dart:380:35 • undefined_identifier
+  error • Undefined name 'l10n' • lib/src/presentation/screens/transactions/transactions_screen.dart:392:35 • undefined_identifier
+  error • Undefined name 'l10n' • lib/src/presentation/screens/transactions/transactions_screen.dart:404:35 • undefined_identifier
+  error • Undefined name 'l10n' • lib/src/presentation/screens/transactions/transactions_screen.dart:431:35 • undefined_identifier
+  error • Undefined name 'l10n' • lib/src/presentation/screens/transactions/transactions_screen.dart:435:35 • undefined_identifier
+  error • Target of URI doesn't exist: 'package:flutter_gen/gen_l10n/app_localizations.dart' • lib/src/presentation/widgets/empty_state.dart:2:8 • uri_does_not_exist
+  error • Undefined name 'AppLocalizations' • lib/src/presentation/widgets/empty_state.dart:183:29 • undefined_identifier
+
+64 issues found. (ran in 0.9s)

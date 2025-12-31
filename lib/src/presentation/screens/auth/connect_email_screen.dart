@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pennypilot/src/presentation/providers/auth_provider.dart';
 import 'package:pennypilot/src/presentation/screens/dashboard/dashboard_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ConnectEmailScreen extends ConsumerWidget {
   const ConnectEmailScreen({super.key});
@@ -10,7 +11,7 @@ class ConnectEmailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Connect Accounts'),
+        title: Text(AppLocalizations.of(context)!.connectAccounts),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -18,14 +19,14 @@ class ConnectEmailScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Link your email to automatically track expenses.',
+              AppLocalizations.of(context)!.linkEmailDescription,
               style: Theme.of(context).textTheme.bodyLarge,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
             _ConnectButton(
               icon: Icons.mail,
-              label: 'Connect Gmail',
+              label: AppLocalizations.of(context)!.connectGmail,
               color: Colors.red.shade700,
               onPressed: () async {
                 try {
@@ -33,7 +34,7 @@ class ConnectEmailScreen extends ConsumerWidget {
                   final account = await authService.signInWithGoogle();
                   if (account != null && context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Connected to $account')),
+                      SnackBar(content: Text(AppLocalizations.of(context)!.connectedTo(account))),
                     );
                     Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
@@ -44,7 +45,7 @@ class ConnectEmailScreen extends ConsumerWidget {
                 } catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Failed to connect: $e')),
+                      SnackBar(content: Text(AppLocalizations.of(context)!.failedToConnect(e.toString()))),
                     );
                   }
                 }
@@ -53,7 +54,7 @@ class ConnectEmailScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             _ConnectButton(
               icon: Icons.mail_outline,
-              label: 'Connect Outlook',
+              label: AppLocalizations.of(context)!.connectOutlook,
               color: Colors.blue.shade700,
               onPressed: () {
                 // TODO: Implement Outlook OAuth
@@ -62,7 +63,7 @@ class ConnectEmailScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             _ConnectButton(
               icon: Icons.cloud,
-              label: 'Connect iCloud',
+              label: AppLocalizations.of(context)!.connectICloud,
               color: Colors.blueGrey,
               onPressed: () {
                 // TODO: Implement iCloud OAuth
@@ -78,11 +79,11 @@ class ConnectEmailScreen extends ConsumerWidget {
                   ),
                 );
               },
-              child: const Text('Try Demo Mode (Mock Data)'),
+              child: Text(AppLocalizations.of(context)!.tryDemoMode),
             ),
             const SizedBox(height: 16),
             Text(
-              'We only read emails related to receipts and subscriptions. No data leaves your device.',
+              AppLocalizations.of(context)!.privacyDisclaimer,
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),

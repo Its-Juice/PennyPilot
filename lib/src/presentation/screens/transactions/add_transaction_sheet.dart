@@ -5,6 +5,7 @@ import 'package:pennypilot/src/data/models/transaction_model.dart';
 import 'package:pennypilot/src/presentation/providers/data_providers.dart';
 import 'package:pennypilot/src/presentation/providers/database_provider.dart';
 import 'package:pennypilot/src/presentation/providers/app_state_provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class AddTransactionSheet extends ConsumerStatefulWidget {
   const AddTransactionSheet({super.key});
@@ -103,13 +104,13 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Transaction recorded')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.transactionRecorded)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.error(e.toString()))),
         );
       }
     } finally {
@@ -124,6 +125,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     final theme = Theme.of(context);
     final isIncome = _kind == TransactionKind.income;
     final categories = isIncome ? _incomeCategories : _expenseCategories;
+    final l10n = AppLocalizations.of(context)!;
+
 
     return Container(
       padding: EdgeInsets.only(
@@ -158,7 +161,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'New Entry',
+                    l10n.newEntry,
                     style: theme.textTheme.headlineSmall,
                     textAlign: TextAlign.center,
                   ),
@@ -166,16 +169,16 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                   
                   // Type Selection
                   SegmentedButton<TransactionKind>(
-                    segments: const [
+                    segments: [
                       ButtonSegment(
                         value: TransactionKind.expense,
-                        label: Text('Expense'),
-                        icon: Icon(Icons.arrow_upward, size: 16),
+                        label: Text(l10n.expense),
+                        icon: const Icon(Icons.arrow_upward, size: 16),
                       ),
                       ButtonSegment(
                         value: TransactionKind.income,
-                        label: Text('Income'),
-                        icon: Icon(Icons.arrow_downward, size: 16),
+                        label: Text(l10n.incomeLabel),
+                        icon: const Icon(Icons.arrow_downward, size: 16),
                       ),
                     ],
                     selected: {_kind},
@@ -212,10 +215,10 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter an amount';
+                        return l10n.pleaseEnterAmount;
                       }
                       if (double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), '')) == null) {
-                        return 'Invalid amount';
+                        return l10n.invalidAmount;
                       }
                       return null;
                     },
@@ -227,7 +230,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                   TextFormField(
                     controller: _merchantController,
                     decoration: InputDecoration(
-                      labelText: isIncome ? 'Source' : 'Merchant',
+                      labelText: isIncome ? l10n.source : l10n.merchantLabel,
                       prefixIcon: Icon(isIncome ? Icons.work : Icons.store),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -238,7 +241,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     textCapitalization: TextCapitalization.sentences,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                          return isIncome ? 'Please enter source' : 'Please enter merchant';
+                          return isIncome ? l10n.pleaseEnterSource : l10n.pleaseEnterMerchant;
                       }
                       return null;
                     },
@@ -250,7 +253,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                   DropdownButtonFormField<String>(
                     initialValue: _category,
                     decoration: InputDecoration(
-                      labelText: 'Category',
+                      labelText: l10n.category,
                       prefixIcon: const Icon(Icons.category),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -263,7 +266,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       child: Text(c),
                     )).toList(),
                     onChanged: (value) => setState(() => _category = value),
-                    validator: (value) => value == null ? 'Please select a category' : null,
+                    validator: (value) => value == null ? l10n.pleaseSelectCategory : null,
                   ),
                   
                   const SizedBox(height: 16),
@@ -274,7 +277,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     borderRadius: BorderRadius.circular(12),
                     child: InputDecorator(
                       decoration: InputDecoration(
-                        labelText: 'Date',
+                        labelText: l10n.date,
                         prefixIcon: const Icon(Icons.calendar_today),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -293,11 +296,11 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                   
                   // Recurring Switch
                   SwitchListTile(
-                    title: const Text('Recurring'),
+                    title: Text(l10n.recurring),
                     subtitle: Text(
                       isIncome 
-                        ? 'Regular income like salary' 
-                        : 'Repeating expense like subscription',
+                        ? l10n.recurringIncomeDescription
+                        : l10n.recurringExpenseDescription,
                       style: theme.textTheme.bodySmall,
                     ),
                     value: _isRecurring,
@@ -326,7 +329,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                             height: 24,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Save Transaction'),
+                        : Text(l10n.saveTransaction),
                   ),
                 ],
               ),

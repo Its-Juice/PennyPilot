@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:pennypilot/src/presentation/providers/app_state_provider.dart';
 import 'package:pennypilot/src/presentation/screens/auth/connect_email_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -15,23 +16,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<Map<String, dynamic>> _pages = [
-    {
-      'title': 'Take Control of Your Spending',
-      'description': 'PennyPilot helps you navigate your finances with ease and precision.',
-      'lottie': 'https://lottie.host/8e202511-2b62-4f38-bc0c-8433ecbc6f5b/vU6pYvIq4Z.json',
-    },
-    {
-      'title': 'Privacy is Our Priority',
-      'description': 'Your data never leaves your device. Everything is processed locally for maximum security.',
-      'lottie': 'https://lottie.host/7a85e683-93d4-470a-9d6e-df457d383822/TfTfTfTfTf.json',
-    },
-    {
-      'title': 'AI-Powered Insights',
-      'description': 'On-device AI automatically identifies transactions and tracks subscriptions from your emails.',
-      'lottie': 'https://lottie.host/8040b2e8-569b-4379-9134-e3ac5e6f3649/v6k6q6p6Vv.json',
-    },
-  ];
 
   Future<void> _completeOnboarding() async {
     await ref.read(appStateProvider.notifier).completeOnboarding();
@@ -47,6 +31,25 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final List<Map<String, dynamic>> pages = [
+      {
+        'title': l10n.onboardingTitle1,
+        'description': l10n.onboardingDesc1,
+        'lottie': 'https://lottie.host/8e202511-2b62-4f38-bc0c-8433ecbc6f5b/vU6pYvIq4Z.json',
+      },
+      {
+        'title': l10n.onboardingTitle2,
+        'description': l10n.onboardingDesc2,
+        'lottie': 'https://lottie.host/7a85e683-93d4-470a-9d6e-df457d383822/TfTfTfTfTf.json',
+      },
+      {
+        'title': l10n.onboardingTitle3,
+        'description': l10n.onboardingDesc3,
+        'lottie': 'https://lottie.host/8040b2e8-569b-4379-9134-e3ac5e6f3649/v6k6q6p6Vv.json',
+      },
+    ];
+
     return Scaffold(
       body: Stack(
         children: [
@@ -73,7 +76,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   alignment: Alignment.topRight,
                   child: TextButton(
                     onPressed: _completeOnboarding,
-                    child: const Text('Skip'),
+                    child: Text(l10n.skip),
                   ),
                 ),
                 Expanded(
@@ -84,7 +87,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         _currentPage = index;
                       });
                     },
-                    itemCount: _pages.length,
+                    itemCount: pages.length,
                     itemBuilder: (context, index) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 40.0),
@@ -94,13 +97,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             SizedBox(
                               height: 300,
                               child: Lottie.network(
-                                _pages[index]['lottie']!,
+                                pages[index]['lottie']!,
                                 fit: BoxFit.contain,
                               ),
                             ),
                             const SizedBox(height: 48),
                             Text(
-                              _pages[index]['title']!,
+                              pages[index]['title']!,
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
@@ -109,7 +112,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             ),
                             const SizedBox(height: 24),
                             Text(
-                              _pages[index]['description']!,
+                              pages[index]['description']!,
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -131,7 +134,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(
-                          _pages.length,
+                          pages.length,
                           (index) => AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
                             margin: const EdgeInsets.only(right: 8),
@@ -154,7 +157,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         height: 64,
                         child: FilledButton(
                           onPressed: () {
-                            if (_currentPage < _pages.length - 1) {
+                            if (_currentPage < pages.length - 1) {
                               _pageController.nextPage(
                                 duration: const Duration(milliseconds: 600),
                                 curve: Curves.easeOutCubic,
@@ -169,7 +172,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             ),
                           ),
                           child: Text(
-                            _currentPage == _pages.length - 1 ? 'Get Started' : 'Continue',
+                            _currentPage == pages.length - 1 ? l10n.getStarted : l10n.continueText,
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,

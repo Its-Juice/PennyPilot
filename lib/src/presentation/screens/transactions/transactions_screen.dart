@@ -11,6 +11,7 @@ import 'package:pennypilot/src/data/models/transaction_model.dart';
 import 'package:intl/intl.dart';
 import 'package:pennypilot/src/presentation/providers/app_state_provider.dart';
 import 'package:pennypilot/src/presentation/screens/transactions/receipt_scan_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class TransactionsScreen extends ConsumerStatefulWidget {
   const TransactionsScreen({super.key});
@@ -34,309 +35,255 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final transactionsAsync = ref.watch(transactionsProvider);
+    final l10n = AppLocalizations.of(context)!;
+
 
     return Scaffold(
-      appBar: AppBar(
-        title: _isSearching 
-            ? TextField(
-                controller: _searchController,
-                autofocus: true,
-                decoration: const InputDecoration(
-                  hintText: 'Search merchant or notes...',
-                  border: InputBorder.none,
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.large(
+            title: _isSearching 
+                ? TextField(
+                    controller: _searchController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: l10n.searchHint,
+                      border: InputBorder.none,
+                      filled: false,
+                    ),
+                    onChanged: (value) => setState(() => _searchQuery = value),
+                  )
+                : Text(l10n.transactions),
+            actions: [
+              IconButton(
+                icon: Icon(_isSearching ? Icons.close : Icons.search),
+                onPressed: () {
+                   setState(() {
+                     if (_isSearching) {
+                       _isSearching = false;
+                       _searchQuery = '';
+                       _searchController.clear();
+                     } else {
+                       _isSearching = true;
+                     }
+                   });
                 },
-              )
-            : const Text('Transactions'),
-        actions: [
-          IconButton(
-            icon: Icon(_isSearching ? Icons.close : Icons.search),
-            onPressed: () {
-               setState(() {
-                 if (_isSearching) {
-                   _isSearching = false;
-                   _searchQuery = '';
-                   _searchController.clear();
-                 } else {
-                   _isSearching = true;
-                 }
-               });
-            },
-            tooltip: _isSearching ? 'Close Search' : 'Search',
-          ),
-            IconButton(
-              icon: const Icon(Icons.document_scanner),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ReceiptScanScreen()),
-                );
-              },
-              tooltip: 'Scan Receipt',
-            ),
-          if (!_isSearching)
-            IconButton(
-              icon: const Icon(Icons.filter_list),
-              onPressed: () => _showFilterSheet(context),
-              tooltip: 'Filter & Sort',
-            ),
-        ],
-      ),
-      body: transactionsAsync.when(
-        data: (transactions) {
-          if (transactions.isEmpty) {
-            return EmptyState(
-              icon: Icons.receipt_long,
-              title: 'No Transactions Yet',
-              message: 'Connect your email to start tracking your spending',
-              action: FilledButton.icon(
+              ),
+              IconButton(
+                icon: const Icon(Icons.document_scanner),
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const ConnectEmailScreen(),
-                    ),
+                    MaterialPageRoute(builder: (context) => const ReceiptScanScreen()),
                   );
                 },
-                icon: const Icon(Icons.email),
-                label: const Text('Connect Email'),
               ),
-            );
-          }
-
-          // Apply filters
-          var filteredTransactions = transactions;
-          if (_filterCategory != 'All') {
-            filteredTransactions = transactions
-                .where((t) => t.category == _filterCategory)
-                .toList();
-          }
+              if (!_isSearching)
+                IconButton(
+                  icon: const Icon(Icons.filter_list),
+                  onPressed: () => _showFilterSheet(context),
+                ),
+            ],
+          ),
           
-          if (_searchQuery.isNotEmpty) {
-             final query = _searchQuery.toLowerCase();
-             filteredTransactions = filteredTransactions.where((t) {
-               return t.merchantName.toLowerCase().contains(query) ||
-                      (t.notes?.toLowerCase().contains(query) ?? false) ||
-                      (t.category?.toLowerCase().contains(query) ?? false);
-             }).toList();
-          }
-
-          // Apply sorting
-          filteredTransactions = List.from(filteredTransactions);
-          switch (_sortBy) {
-            case 'amount':
-              filteredTransactions.sort((a, b) => b.amount.compareTo(a.amount));
-              break;
-            case 'merchant':
-              filteredTransactions.sort((a, b) => 
-                a.merchantName.compareTo(b.merchantName));
-              break;
-            case 'date':
-            default:
-              filteredTransactions.sort((a, b) => b.date.compareTo(a.date));
-          }
-
-          return Column(
-            children: [
-              // Summary card
-              Container(
-                margin: const EdgeInsets.all(16),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      theme.colorScheme.primaryContainer,
-                      theme.colorScheme.secondaryContainer,
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Builder(
-                      builder: (context) {
-                        final flows = _calculateMonthlyFlows(filteredTransactions);
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _buildSummaryItem(
-                              context,
-                              'Income',
-                              flows['income']!,
-                              Icons.arrow_downward,
-                              color: Colors.green,
-                            ),
-                            Container(
-                              width: 1,
-                              height: 40,
-                              color: theme.colorScheme.outline.withAlpha(77),
-                              margin: const EdgeInsets.symmetric(horizontal: 16),
-                            ),
-                            _buildSummaryItem(
-                              context,
-                              'Expenses',
-                              flows['expense']!,
-                              Icons.arrow_upward,
-                            ),
-                            Container(
-                              width: 1,
-                              height: 40,
-                              color: theme.colorScheme.outline.withAlpha(77),
-                              margin: const EdgeInsets.symmetric(horizontal: 16),
-                            ),
-                            _buildSummaryItem(
-                              context,
-                              'Net',
-                              flows['net']!,
-                              Icons.account_balance,
-                              color: flows['net']! >= 0 ? Colors.green : theme.colorScheme.error,
-                            ),
-                          ],
-                        );
-                      }
+          transactionsAsync.when(
+            data: (transactions) {
+              if (transactions.isEmpty) {
+                return SliverFillRemaining(
+                  child: EmptyState(
+                    icon: Icons.receipt_long,
+                    title: l10n.noTransactionsYet,
+                    message: l10n.connectEmailDescription,
+                    action: FilledButton.icon(
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ConnectEmailScreen())),
+                      icon: const Icon(Icons.email),
+                      label: Text(l10n.connectEmail),
                     ),
-                  ],
-                ),
-              ),
-
-              // Filter chips
-              if (_filterCategory != 'All' || _sortBy != 'date')
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  height: 40,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      if (_filterCategory != 'All')
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: Chip(
-                            label: Text('Category: $_filterCategory'),
-                            onDeleted: () {
-                              setState(() {
-                                _filterCategory = 'All';
-                              });
-                            },
-                          ),
-                        ),
-                      if (_sortBy != 'date')
-                        Chip(
-                          label: Text('Sort: ${_sortBy[0].toUpperCase()}${_sortBy.substring(1)}'),
-                          onDeleted: () {
-                            setState(() {
-                              _sortBy = 'date';
-                            });
-                          },
-                        ),
-                    ],
                   ),
-                ),
+                );
+              }
 
-              // Transaction list
-              Expanded(
-                child: filteredTransactions.isEmpty
-                    ? EmptyState(
-                        icon: Icons.filter_alt_off,
-                        title: 'No Matches',
-                        message: 'Try adjusting your filters',
-                        action: TextButton(
-                          onPressed: () {
-                            setState(() {
-                              _filterCategory = 'All';
-                              _sortBy = 'date';
-                            });
-                          },
-                          child: const Text('Clear Filters'),
+              var filteredTransactions = transactions;
+              if (_filterCategory != 'All') {
+                filteredTransactions = transactions.where((t) => t.category == _filterCategory).toList();
+              }
+              if (_searchQuery.isNotEmpty) {
+                final query = _searchQuery.toLowerCase();
+                filteredTransactions = filteredTransactions.where((t) => 
+                  t.merchantName.toLowerCase().contains(query) ||
+                  (t.notes?.toLowerCase().contains(query) ?? false) ||
+                  (t.category?.toLowerCase().contains(query) ?? false)
+                ).toList();
+              }
+
+              filteredTransactions = List.from(filteredTransactions);
+              switch (_sortBy) {
+                case 'amount': filteredTransactions.sort((a, b) => b.amount.compareTo(a.amount)); break;
+                case 'merchant': filteredTransactions.sort((a, b) => a.merchantName.compareTo(b.merchantName)); break;
+                case 'date': default: filteredTransactions.sort((a, b) => b.date.compareTo(a.date));
+              }
+
+              return SliverMainAxisGroup(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                      child: _buildRefinedSummary(context, filteredTransactions),
+                    ),
+                  ),
+                  if (_filterCategory != 'All' || _sortBy != 'date')
+                    SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: 48,
+                        child: ListView(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            if (_filterCategory != 'All')
+                              Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: InputChip(
+                                  label: Text(_filterCategory),
+                                  onDeleted: () => setState(() => _filterCategory = 'All'),
+                                ),
+                              ),
+                            if (_sortBy != 'date')
+                              InputChip(
+                                label: Text('${_sortBy[0].toUpperCase()}${_sortBy.substring(1)}'),
+                                onDeleted: () => setState(() => _sortBy = 'date'),
+                              ),
+                          ],
                         ),
-                      )
-                    : ListView.builder(
-                        itemCount: filteredTransactions.length,
-                        padding: const EdgeInsets.only(bottom: 16),
-                        itemBuilder: (context, index) {
-                          final transaction = filteredTransactions[index];
-                          return TransactionCard(
-                            transaction: transaction,
-                            showConfidence: true,
-                            expandable: true,
-                            onTap: () {
-                              Navigator.push(
+                      ),
+                    ),
+                  
+                  if (filteredTransactions.isEmpty)
+                    SliverFillRemaining(
+                      child: EmptyState(
+                        icon: Icons.filter_alt_off,
+                        title: l10n.noMatches,
+                        message: l10n.tryAdjustingFilters,
+                        action: TextButton(
+                          onPressed: () => setState(() { _filterCategory = 'All'; _sortBy = 'date'; }),
+                          child: Text(l10n.clearFilters),
+                        ),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.only(bottom: 80),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final transaction = filteredTransactions[index];
+                            return TransactionCard(
+                              transaction: transaction,
+                              showConfidence: true,
+                              expandable: true,
+                              onTap: () => Navigator.push(
                                 context,
                                 SharedAxisPageRoute(
-                                  page: TransactionDetailsScreen(
-                                    transaction: transaction,
-                                  ),
+                                  page: TransactionDetailsScreen(transaction: transaction),
                                 ),
-                              );
-                            },
-                          );
-                        },
+                              ),
+                            );
+                          },
+                          childCount: filteredTransactions.length,
+                        ),
                       ),
+                    ),
+                ],
+              );
+            },
+            loading: () => const SliverFillRemaining(child: LoadingState()),
+            error: (error, stack) => SliverFillRemaining(
+              child: ErrorState(
+                title: l10n.failedToLoad,
+                message: error.toString(),
+                onRetry: () => ref.refresh(transactionsProvider),
               ),
-            ],
-          );
-        },
-        loading: () => const LoadingState(message: 'Loading transactions...'),
-        error: (error, stack) => ErrorState(
-          title: 'Failed to Load',
-          message: error.toString(),
-          onRetry: () => ref.refresh(transactionsProvider),
-        ),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            useSafeArea: true,
-            builder: (context) => const AddTransactionSheet(),
-          );
-        },
+        onPressed: () => showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          useSafeArea: true,
+          builder: (context) => const AddTransactionSheet(),
+        ),
         icon: const Icon(Icons.add),
-        label: const Text('Add Entry'),
+        label: Text(l10n.addEntry),
       ),
     );
   }
 
-  Widget _buildSummaryItem(
-    BuildContext context,
-    String label,
-    double amount,
-    IconData icon, {
-    Color? color,
-  }) {
+  Widget _buildRefinedSummary(BuildContext context, List<TransactionModel> transactions) {
+    final flows = _calculateMonthlyFlows(transactions);
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withAlpha(51)),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            Expanded(
+              child: _summaryColumn(
+                context, 
+                l10n.income, 
+                flows['income']!, 
+                theme.colorScheme.primary,
+              ),
+            ),
+            VerticalDivider(color: theme.colorScheme.outlineVariant.withAlpha(51), thickness: 1, indent: 8, endIndent: 8),
+            Expanded(
+              child: _summaryColumn(
+                context, 
+                l10n.expenses, 
+                flows['expense']!, 
+                theme.colorScheme.onSurface,
+              ),
+            ),
+            VerticalDivider(color: theme.colorScheme.outlineVariant.withAlpha(51), thickness: 1, indent: 8, endIndent: 8),
+            Expanded(
+              child: _summaryColumn(
+                context, 
+                l10n.net, 
+                flows['net']!, 
+                flows['net']! >= 0 ? Colors.green : theme.colorScheme.error,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _summaryColumn(BuildContext context, String label, double amount, Color color) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          size: 20,
-          color: color ?? theme.colorScheme.onPrimaryContainer,
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: 4),
         Text(
           NumberFormat.compactCurrency(
             symbol: CurrencyInfo.getSymbol(ref.watch(appStateProvider).currencyCode),
           ).format(amount.abs()),
-          style: theme.textTheme.titleLarge?.copyWith(
-            color: color ?? theme.colorScheme.onPrimaryContainer,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            color: color,
             fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          label,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onPrimaryContainer.withAlpha(204),
           ),
         ),
       ],
@@ -367,6 +314,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   }
 
   void _showFilterSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -378,13 +326,13 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Filter & Sort',
+                  l10n.filterAndSort,
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 24),
                 
                 Text(
-                  'Sort By',
+                  l10n.sortFilter(''), // Note: this might need a better key for just 'Sort By'
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
@@ -392,7 +340,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                   spacing: 8,
                   children: [
                     ChoiceChip(
-                      label: const Text('Date'),
+                      label: Text(l10n.date),
                       selected: _sortBy == 'date',
                       onSelected: (selected) {
                         setModalState(() {
@@ -404,7 +352,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                       },
                     ),
                     ChoiceChip(
-                      label: const Text('Amount'),
+                      label: Text(l10n.amount),
                       selected: _sortBy == 'amount',
                       onSelected: (selected) {
                         setModalState(() {
@@ -416,7 +364,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                       },
                     ),
                     ChoiceChip(
-                      label: const Text('Merchant'),
+                      label: Text(l10n.merchant),
                       selected: _sortBy == 'merchant',
                       onSelected: (selected) {
                         setModalState(() {
@@ -443,11 +391,11 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                         });
                         Navigator.pop(context);
                       },
-                      child: const Text('Reset'),
+                      child: Text(l10n.reset),
                     ),
                     FilledButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Apply'),
+                      child: Text(l10n.apply),
                     ),
                   ],
                 ),

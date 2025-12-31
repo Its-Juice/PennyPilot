@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:pennypilot/src/data/models/subscription_model.dart';
 import 'package:pennypilot/src/presentation/providers/data_providers.dart';
 import 'package:pennypilot/src/presentation/providers/app_state_provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class AddSubscriptionSheet extends ConsumerStatefulWidget {
   const AddSubscriptionSheet({super.key});
@@ -75,13 +76,13 @@ class _AddSubscriptionSheetState extends ConsumerState<AddSubscriptionSheet> {
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Subscription added successfully')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.subscriptionAdded)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error adding subscription: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.errorAddingSubscription(e.toString()))),
         );
       }
     } finally {
@@ -95,6 +96,8 @@ class _AddSubscriptionSheetState extends ConsumerState<AddSubscriptionSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final categoriesAsync = ref.watch(categoriesProvider);
+    final l10n = AppLocalizations.of(context)!;
+
 
     return Container(
       padding: EdgeInsets.only(
@@ -124,7 +127,7 @@ class _AddSubscriptionSheetState extends ConsumerState<AddSubscriptionSheet> {
                   ),
                 ),
                 Text(
-                  'Add Subscription',
+                  l10n.addSubscription,
                   style: theme.textTheme.headlineSmall,
                   textAlign: TextAlign.center,
                 ),
@@ -134,12 +137,12 @@ class _AddSubscriptionSheetState extends ConsumerState<AddSubscriptionSheet> {
                 TextFormField(
                   controller: _nameController,
                   decoration: InputDecoration(
-                    labelText: 'Service Name',
-                    hintText: 'e.g. Netflix, Spotify',
+                    labelText: l10n.serviceName,
+                    hintText: l10n.serviceNameHint,
                     prefixIcon: const Icon(Icons.subscriptions),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                  validator: (value) => value == null || value.isEmpty ? l10n.required : null,
                 ),
                 const SizedBox(height: 16),
                 
@@ -148,14 +151,14 @@ class _AddSubscriptionSheetState extends ConsumerState<AddSubscriptionSheet> {
                   controller: _amountController,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
-                    labelText: 'Amount',
+                    labelText: l10n.amount,
                     prefixText: '${ref.watch(appStateProvider.select((s) => s.currencyCode))} ',
                     prefixIcon: const Icon(Icons.payments),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Required';
-                    if (double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), '')) == null) return 'Invalid';
+                    if (value == null || value.isEmpty) return l10n.required;
+                    if (double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), '')) == null) return l10n.invalid;
                     return null;
                   },
                 ),
@@ -165,7 +168,7 @@ class _AddSubscriptionSheetState extends ConsumerState<AddSubscriptionSheet> {
                 categoriesAsync.when(
                   data: (categories) => DropdownButtonFormField<int>(
                     decoration: InputDecoration(
-                      labelText: 'Category',
+                      labelText: l10n.category,
                       prefixIcon: const Icon(Icons.category),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
@@ -177,14 +180,14 @@ class _AddSubscriptionSheetState extends ConsumerState<AddSubscriptionSheet> {
                     onChanged: (val) => setState(() => _selectedCategoryId = val),
                   ),
                   loading: () => const LinearProgressIndicator(),
-                  error: (e, s) => const Text('Error loading categories'),
+                  error: (e, s) => Text(l10n.failedToLoad),
                 ),
                 const SizedBox(height: 16),
 
                 // Frequency selection
                 DropdownButtonFormField<SubscriptionFrequency>(
                   decoration: InputDecoration(
-                    labelText: 'Billing Cycle',
+                    labelText: l10n.billingCycle,
                     prefixIcon: const Icon(Icons.repeat),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -203,7 +206,7 @@ class _AddSubscriptionSheetState extends ConsumerState<AddSubscriptionSheet> {
                   borderRadius: BorderRadius.circular(12),
                   child: InputDecorator(
                     decoration: InputDecoration(
-                      labelText: 'Next Renewal Date',
+                      labelText: l10n.nextRenewalDate,
                       prefixIcon: const Icon(Icons.calendar_today),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
@@ -217,7 +220,7 @@ class _AddSubscriptionSheetState extends ConsumerState<AddSubscriptionSheet> {
                   controller: _notesController,
                   maxLines: 2,
                   decoration: InputDecoration(
-                    labelText: 'Notes (Optional)',
+                    labelText: l10n.notesOptional,
                     prefixIcon: const Icon(Icons.note_alt),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -232,7 +235,7 @@ class _AddSubscriptionSheetState extends ConsumerState<AddSubscriptionSheet> {
                   ),
                   child: _isLoading 
                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('Add Subscription'),
+                    : Text(l10n.addSubscription),
                 ),
               ],
             ),

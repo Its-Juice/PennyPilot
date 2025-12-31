@@ -6,6 +6,7 @@ import 'package:pennypilot/src/data/models/transaction_model.dart';
 import 'package:pennypilot/src/data/models/category_model.dart';
 import 'package:intl/intl.dart';
 import 'package:pennypilot/src/presentation/providers/app_state_provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class InsightsScreen extends ConsumerWidget {
   const InsightsScreen({super.key});
@@ -24,16 +25,16 @@ class InsightsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Spending Insights'),
+        title: Text(AppLocalizations.of(context)!.spendingInsights),
       ),
       body: transactionsAsync.when(
         data: (transactions) => categoriesAsync.when(
           data: (categories) => _buildInsights(context, transactions, categories, currencyFormat),
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, s) => Center(child: Text('Error loading categories: $e')),
+          error: (e, s) => Center(child: Text(AppLocalizations.of(context)!.errorLoadingCategories(e.toString()))),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, s) => Center(child: Text('Error loading transactions: $e')),
+        error: (e, s) => Center(child: Text(AppLocalizations.of(context)!.errorLoadingTransactions(e.toString()))),
       ),
     );
   }
@@ -44,6 +45,7 @@ class InsightsScreen extends ConsumerWidget {
     List<CategoryModel> categories,
     NumberFormat currencyFormat,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     if (transactions.isEmpty) {
       return Center(
         child: Column(
@@ -51,9 +53,9 @@ class InsightsScreen extends ConsumerWidget {
           children: [
             Icon(Icons.analytics_outlined, size: 64, color: Theme.of(context).colorScheme.outline),
             const SizedBox(height: 16),
-            const Text('Not enough data for insights yet.'),
+            Text(l10n.notEnoughDataForInsights),
             const SizedBox(height: 8),
-            const Text('Connect your email to see your spending patterns.'),
+            Text(l10n.connectEmailInsights),
           ],
         ),
       );
@@ -78,71 +80,99 @@ class InsightsScreen extends ConsumerWidget {
     // Get time-based series (last 6 months)
     final monthlyData = _getMonthlyData(transactions);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSummaryCards(context, totalSpent, transactions, currencyFormat),
-          const SizedBox(height: 24),
-          
-          Text('Spending by Category', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 16),
-          _buildCategoryChart(context, categoryTotals, categories, totalSpent),
-          const SizedBox(height: 24),
-          
-          Text('Monthly Trend', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 16),
-          _buildMonthlyChart(context, monthlyData, currencyFormat),
-          const SizedBox(height: 24),
-          
-          Text('Top Merchants', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 16),
-          _buildTopMerchantsList(context, topMerchants.take(5).toList(), currencyFormat),
-          const SizedBox(height: 32),
-        ],
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar.large(
+          title: Text(l10n.spendingInsights),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.all(16),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              _buildSummaryRow(context, totalSpent, transactions, currencyFormat),
+              const SizedBox(height: 32),
+              
+              _sectionHeader(context, l10n.spendingByCategory),
+              const SizedBox(height: 12),
+              _buildCategoryChart(context, categoryTotals, categories, totalSpent),
+              
+              const SizedBox(height: 32),
+              _sectionHeader(context, l10n.monthlyTrend),
+              const SizedBox(height: 12),
+              _buildMonthlyChart(context, monthlyData, currencyFormat),
+              
+              const SizedBox(height: 32),
+              _sectionHeader(context, l10n.topMerchants),
+              const SizedBox(height: 12),
+              _buildTopMerchantsList(context, topMerchants.take(5).toList(), currencyFormat),
+              const SizedBox(height: 48),
+            ]),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _sectionHeader(BuildContext context, String title) {
+    return Text(
+      title,
+      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.bold,
       ),
     );
   }
 
-  Widget _buildSummaryCards(BuildContext context, double total, List<TransactionModel> transactions, NumberFormat format) {
+  Widget _buildSummaryRow(BuildContext context, double total, List<TransactionModel> transactions, NumberFormat format) {
+    final l10n = AppLocalizations.of(context)!;
+    final avgPerDay = transactions.isEmpty ? 0.0 : total / (DateTime.now().difference(transactions.last.date).inDays.abs() + 1);
     final theme = Theme.of(context);
-    final avgPerDay = transactions.isEmpty ? 0 : total / (DateTime.now().difference(transactions.last.date).inDays.abs() + 1);
 
-    return Row(
-      children: [
-        Expanded(
-          child: Card(
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer.withAlpha(51),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: theme.colorScheme.primary.withAlpha(26)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l10n.totalVolume, style: theme.textTheme.labelMedium),
+                const SizedBox(height: 4),
+                Text(
+                  format.format(total),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(height: 40, width: 1, color: theme.colorScheme.primary.withAlpha(51)),
+          Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.only(left: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   Text('Total Volume', style: theme.textTheme.labelMedium),
-                   const SizedBox(height: 4),
-                   Text(format.format(total), style: theme.textTheme.titleLarge?.copyWith(color: theme.colorScheme.primary)),
+                  Text(l10n.avgPerDay, style: theme.textTheme.labelMedium),
+                  const SizedBox(height: 4),
+                  Text(
+                    format.format(avgPerDay),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                   Text('Avg. / Day', style: theme.textTheme.labelMedium),
-                   const SizedBox(height: 4),
-                   Text(format.format(avgPerDay), style: theme.textTheme.titleLarge),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -150,7 +180,8 @@ class InsightsScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     
     final sections = totals.entries.map((e) {
-      final cat = categories.firstWhere((c) => c.id == e.key, orElse: () => CategoryModel()..name = 'Other'..color = '#888888');
+      final l10n = AppLocalizations.of(context)!;
+      final cat = categories.firstWhere((c) => c.id == e.key, orElse: () => CategoryModel()..name = l10n.other..color = '#888888');
       final percentage = (e.value / grandTotal) * 100;
       
       return PieChartSectionData(
@@ -163,6 +194,12 @@ class InsightsScreen extends ConsumerWidget {
     }).toList();
 
     return Card(
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withAlpha(51)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -172,8 +209,8 @@ class InsightsScreen extends ConsumerWidget {
               child: PieChart(
                 PieChartData(
                   sections: sections,
-                  centerSpaceRadius: 40,
-                  sectionsSpace: 2,
+                  centerSpaceRadius: 50,
+                  sectionsSpace: 4,
                 ),
               ),
             ),
@@ -182,12 +219,13 @@ class InsightsScreen extends ConsumerWidget {
               spacing: 16,
               runSpacing: 8,
               children: totals.entries.map((e) {
-                final cat = categories.firstWhere((c) => c.id == e.key, orElse: () => CategoryModel()..name = 'Other'..color = '#888888');
+                final l10n = AppLocalizations.of(context)!;
+                final cat = categories.firstWhere((c) => c.id == e.key, orElse: () => CategoryModel()..name = l10n.other..color = '#888888');
                 return Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(width: 12, height: 12, decoration: BoxDecoration(color: _parseColor(cat.color), shape: BoxShape.circle)),
-                    const SizedBox(width: 4),
+                    Container(width: 8, height: 8, decoration: BoxDecoration(color: _parseColor(cat.color), shape: BoxShape.circle)),
+                    const SizedBox(width: 6),
                     Text(cat.name, style: theme.textTheme.bodySmall),
                   ],
                 );
@@ -203,6 +241,12 @@ class InsightsScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     
     return Card(
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withAlpha(51)),
+      ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 32, 24, 16),
         child: SizedBox(
@@ -218,7 +262,7 @@ class InsightsScreen extends ConsumerWidget {
                     BarChartRodData(
                       toY: e.value.total,
                       color: theme.colorScheme.primary,
-                      width: 16,
+                      width: 14,
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
                     ),
                   ],
@@ -255,20 +299,35 @@ class InsightsScreen extends ConsumerWidget {
 
   Widget _buildTopMerchantsList(BuildContext context, List<MapEntry<String, double>> topMerchants, NumberFormat format) {
     return Card(
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withAlpha(51)),
+      ),
       child: ListView.separated(
         shrinkWrap: true,
+        padding: const EdgeInsets.symmetric(vertical: 8),
         physics: const NeverScrollableScrollPhysics(),
         itemCount: topMerchants.length,
-        separatorBuilder: (context, index) => const Divider(indent: 16, endIndent: 16),
+        separatorBuilder: (context, index) => Divider(
+          indent: 72, 
+          endIndent: 16, 
+          height: 1, 
+          color: Theme.of(context).colorScheme.outlineVariant.withAlpha(51)
+        ),
         itemBuilder: (context, index) {
           final entry = topMerchants[index];
           return ListTile(
             leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
               child: Text(entry.key[0].toUpperCase()),
             ),
-            title: Text(entry.key),
-            trailing: Text(format.format(entry.value), style: const TextStyle(fontWeight: FontWeight.bold)),
+            title: Text(entry.key, style: Theme.of(context).textTheme.titleSmall),
+            trailing: Text(
+              format.format(entry.value), 
+              style: const TextStyle(fontWeight: FontWeight.bold)
+            ),
           );
         },
       ),

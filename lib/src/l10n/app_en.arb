@@ -1,0 +1,200 @@
+{
+  "@@locale": "en",
+  "appName": "PennyPilot",
+  "demo": "DEMO",
+  "scanEmails": "Scan Emails",
+  "errorScanning": "Error scanning: {error}",
+  "@errorScanning": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "spendingByCategory": "Spending by Category",
+  "spendingPulse": "Spending Pulse",
+  "recentTransactions": "Recent Transactions",
+  "viewAll": "View All",
+  "errorLoadingTransactions": "Error loading transactions: {error}",
+  "@errorLoadingTransactions": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingSubscriptions": "Upcoming Subscriptions",
+  "noActiveSubscriptions": "No active subscriptions detected.",
+  "renewingInDays": "Renewing in {days} days",
+  "@renewingInDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "errorLoadingSubscriptions": "Error loading subscriptions: {error}",
+  "@errorLoadingSubscriptions": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noTransactionsYet": "No Transactions Yet",
+  "connectEmailDescription": "Connect your email to automatically scan for receipts and track your spending.",
+  "connectEmail": "Connect Email",
+  "overview": "Overview",
+  "transactions": "Transactions",
+  "subs": "Subs",
+  "insights": "Insights",
+  "settings": "Settings",
+  "appearance": "Appearance",
+  "light": "Light",
+  "dark": "Dark",
+  "system": "System",
+  "pitchBlackOled": "Pitch Black OLED",
+  "oledDescription": "Completely black background for OLED screens",
+  "accounts": "Accounts",
+  "manageConnectedAccounts": "Manage connected accounts",
+  "noAccountsConnected": "No accounts connected",
+  "accountsConnected": "{count, plural, =1{1 account connected} other{{count} accounts connected}}",
+  "@accountsConnected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "general": "General",
+  "primaryCurrency": "Primary Currency",
+  "manageCategories": "Manage Categories",
+  "privacySecurity": "Privacy & Security",
+  "privacyAudit": "Privacy Audit",
+  "rescanEmails": "Rescan Emails",
+  "scanningEmails": "Scanning emails...",
+  "scanComplete": "Scan complete",
+  "scanFailed": "Scan failed: {error}",
+  "@scanFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "backups": "Backups",
+  "aboutPennyPilot": "About PennyPilot",
+  "selectCurrency": "Select Currency",
+  "searchHint": "Search merchant or notes...",
+  "closeSearch": "Close Search",
+  "search": "Search",
+  "scanReceipt": "Scan Receipt",
+  "filterAndSort": "Filter & Sort",
+  "noMatches": "No Matches",
+  "tryAdjustingFilters": "Try adjusting your filters",
+  "clearFilters": "Clear Filters",
+  "loadingTransactions": "Loading transactions...",
+  "failedToLoad": "Failed to Load",
+  "addEntry": "Add Entry",
+  "income": "Income",
+  "expenses": "Expenses",
+  "net": "Net",
+  "categoryFilter": "Category: {category}",
+  "@categoryFilter": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "sortFilter": "Sort: {sort}",
+  "@sortFilter": {
+    "placeholders": {
+      "sort": {
+        "type": "String"
+      }
+    }
+  },
+  "date": "Date",
+  "amount": "Amount",
+  "merchant": "Merchant",
+  "reset": "Reset",
+  "apply": "Apply",
+  "subscriptions": "Subscriptions",
+  "addSubscription": "Add Subscription",
+  "noSubscriptionsFound": "No Subscriptions Found",
+  "noSubscriptionsDescription": "We'll automatically detect subscriptions from your transactions, or you can add them manually.",
+  "addManually": "Add Manually",
+  "monthlySpend": "Monthly Spend",
+  "active": "Active",
+  "trial": "Trial",
+  "paused": "Paused",
+  "ended": "Ended",
+  "all": "All",
+  "noFilteredSubscriptions": "No {filter} Subscriptions",
+  "trySelectingDifferentFilter": "Try selecting a different filter",
+  "showAll": "Show All",
+  "loadingSubscriptions": "Loading subscriptions...",
+  "detailsFor": "Details for {name}",
+  "spendingInsights": "Spending Insights",
+  "errorLoadingCategories": "Error loading categories: {error}",
+  "notEnoughDataForInsights": "Not enough data for insights yet.",
+  "connectEmailInsights": "Connect your email to see your spending patterns.",
+  "monthlyTrend": "Monthly Trend",
+  "topMerchants": "Top Merchants",
+  "totalVolume": "Total Volume",
+  "avgPerDay": "Avg. / Day",
+  "other": "Other",
+  "skip": "Skip",
+  "getStarted": "Get Started",
+  "continueText": "Continue",
+  "onboardingTitle1": "Take Control of Your Spending",
+  "onboardingDesc1": "PennyPilot helps you navigate your finances with ease and precision.",
+  "onboardingTitle2": "Privacy is Our Priority",
+  "onboardingDesc2": "Your data never leaves your device. Everything is processed locally for maximum security.",
+  "onboardingTitle3": "AI-Powered Insights",
+  "onboardingDesc3": "On-device AI automatically identifies transactions and tracks subscriptions from your emails.",
+  "connectAccounts": "Connect Accounts",
+  "linkEmailDescription": "Link your email to automatically track expenses.",
+  "connectGmail": "Connect Gmail",
+  "connectedTo": "Connected to {account}",
+  "@connectedTo": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToConnect": "Failed to connect: {error}",
+  "connectOutlook": "Connect Outlook",
+  "connectICloud": "Connect iCloud",
+  "tryDemoMode": "Try Demo Mode (Mock Data)",
+  "privacyDisclaimer": "We only read emails related to receipts and subscriptions. No data leaves your device.",
+  "transactionRecorded": "Transaction recorded",
+  "error": "Error: {error}",
+  "newEntry": "New Entry",
+  "expense": "Expense",
+  "incomeLabel": "Income",
+  "pleaseEnterAmount": "Please enter an amount",
+  "invalidAmount": "Invalid amount",
+  "source": "Source",
+  "merchantLabel": "Merchant",
+  "pleaseEnterSource": "Please enter source",
+  "pleaseEnterMerchant": "Please enter merchant",
+  "category": "Category",
+  "pleaseSelectCategory": "Please select a category",
+  "recurring": "Recurring",
+  "recurringIncomeDescription": "Regular income like salary",
+  "recurringExpenseDescription": "Repeating expense like subscription",
+  "saveTransaction": "Save Transaction",
+  "subscriptionAdded": "Subscription added successfully",
+  "errorAddingSubscription": "Error adding subscription: {error}",
+  "serviceName": "Service Name",
+  "serviceNameHint": "e.g. Netflix, Spotify",
+  "required": "Required",
+  "invalid": "Invalid",
+  "billingCycle": "Billing Cycle",
+  "nextRenewalDate": "Next Renewal Date",
+  "notesOptional": "Notes (Optional)",
+  "tryAgain": "Try Again"
+}

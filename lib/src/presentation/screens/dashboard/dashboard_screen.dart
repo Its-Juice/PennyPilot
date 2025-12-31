@@ -6,6 +6,7 @@ import 'package:pennypilot/src/presentation/screens/transactions/transactions_sc
 import 'package:pennypilot/src/presentation/screens/subscriptions/subscriptions_screen.dart';
 import 'package:pennypilot/src/presentation/screens/insights/insights_screen.dart';
 import 'package:pennypilot/src/presentation/screens/settings/settings_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   final bool isDemoMode;
@@ -35,6 +36,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final isWideScreen = MediaQuery.of(context).size.width > 600;
+    final l10n = AppLocalizations.of(context)!;
+
 
     return Scaffold(
       body: Row(
@@ -45,32 +48,36 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               onDestinationSelected: (index) {
                 ref.read(dashboardIndexProvider.notifier).state = index;
               },
-              labelType: NavigationRailLabelType.all,
-              destinations: const [
+              extended: MediaQuery.of(context).size.width > 900,
+              labelType: MediaQuery.of(context).size.width > 900 
+                  ? NavigationRailLabelType.none 
+                  : NavigationRailLabelType.all,
+              indicatorColor: Theme.of(context).colorScheme.secondaryContainer,
+              destinations: [
                 NavigationRailDestination(
-                  icon: Icon(Icons.dashboard_outlined),
-                  selectedIcon: Icon(Icons.dashboard),
-                  label: Text('Overview'),
+                  icon: const Icon(Icons.dashboard_outlined),
+                  selectedIcon: const Icon(Icons.dashboard),
+                  label: Text(l10n.overview),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.receipt_long_outlined),
-                  selectedIcon: Icon(Icons.receipt_long),
-                  label: Text('Transactions'),
+                  icon: const Icon(Icons.receipt_long_outlined),
+                  selectedIcon: const Icon(Icons.receipt_long),
+                  label: Text(l10n.transactions),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.subscriptions_outlined),
-                  selectedIcon: Icon(Icons.subscriptions),
-                  label: Text('Subs'),
+                  icon: const Icon(Icons.subscriptions_outlined),
+                  selectedIcon: const Icon(Icons.subscriptions),
+                  label: Text(l10n.subs),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.insights_outlined),
-                  selectedIcon: Icon(Icons.insights),
-                  label: Text('Insights'),
+                  icon: const Icon(Icons.insights_outlined),
+                  selectedIcon: const Icon(Icons.insights),
+                  label: Text(l10n.insights),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.settings_outlined),
-                  selectedIcon: Icon(Icons.settings),
-                  label: Text('Settings'),
+                  icon: const Icon(Icons.settings_outlined),
+                  selectedIcon: const Icon(Icons.settings),
+                  label: Text(l10n.settings),
                 ),
               ],
             ),
@@ -81,38 +88,36 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       ),
       bottomNavigationBar: isWideScreen
           ? null
-          : BottomNavigationBar(
-              currentIndex: ref.watch(dashboardIndexProvider),
-              onTap: (index) {
+          : NavigationBar(
+              selectedIndex: ref.watch(dashboardIndexProvider),
+              onDestinationSelected: (index) {
                 ref.read(dashboardIndexProvider.notifier).state = index;
               },
-              backgroundColor: Theme.of(context).colorScheme.surface,
-              type: BottomNavigationBarType.fixed,
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.dashboard_outlined),
-                  activeIcon: Icon(Icons.dashboard),
-                  label: 'Overview',
+              destinations: [
+                NavigationDestination(
+                  icon: const Icon(Icons.dashboard_outlined),
+                  selectedIcon: const Icon(Icons.dashboard),
+                  label: l10n.overview,
                 ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.receipt_long_outlined),
-                  activeIcon: Icon(Icons.receipt_long),
-                  label: 'Transactions',
+                NavigationDestination(
+                  icon: const Icon(Icons.receipt_long_outlined),
+                  selectedIcon: const Icon(Icons.receipt_long),
+                  label: l10n.transactions,
                 ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.subscriptions_outlined),
-                  activeIcon: Icon(Icons.subscriptions),
-                  label: 'Subs',
+                NavigationDestination(
+                  icon: const Icon(Icons.subscriptions_outlined),
+                  selectedIcon: const Icon(Icons.subscriptions),
+                  label: l10n.subs,
                 ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.insights_outlined),
-                  activeIcon: Icon(Icons.insights),
-                  label: 'Insights',
+                NavigationDestination(
+                  icon: const Icon(Icons.insights_outlined),
+                  selectedIcon: const Icon(Icons.insights),
+                  label: l10n.insights,
                 ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.settings_outlined),
-                  activeIcon: Icon(Icons.settings),
-                  label: 'Settings',
+                NavigationDestination(
+                  icon: const Icon(Icons.settings_outlined),
+                  selectedIcon: const Icon(Icons.settings),
+                  label: l10n.settings,
                 ),
               ],
             ),

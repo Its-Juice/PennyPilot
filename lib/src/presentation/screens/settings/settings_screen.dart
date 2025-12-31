@@ -11,6 +11,7 @@ import 'package:pennypilot/src/presentation/screens/settings/privacy_audit_scree
 import 'package:pennypilot/src/presentation/screens/settings/manage_accounts_screen.dart';
 import 'package:pennypilot/src/presentation/providers/app_state_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -23,188 +24,182 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final connectedEmails = ref.watch(authServiceProvider).connectedEmails;
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
-      body: ListView(
-        children: [
-          // Appearance Section
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              'Appearance',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.large(
+            title: Text(l10n.settings),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: SegmentedButton<ThemeMode>(
-              segments: const [
-                ButtonSegment(
-                  value: ThemeMode.light,
-                  label: Text('Light'),
-                  icon: Icon(Icons.light_mode),
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _settingsSectionHeader(context, l10n.appearance),
+                _appearanceSection(context, l10n),
+                
+                const SizedBox(height: 24),
+                _settingsSectionHeader(context, l10n.accounts),
+                _groupWrapper(
+                  context,
+                  child: ListTile(
+                    leading: const Icon(Icons.manage_accounts),
+                    title: Text(l10n.manageConnectedAccounts),
+                    subtitle: Text(
+                      connectedEmails.isEmpty 
+                        ? l10n.noAccountsConnected 
+                        : l10n.accountsConnected(connectedEmails.length)
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ManageAccountsScreen())),
+                  ),
                 ),
-                ButtonSegment(
-                  value: ThemeMode.dark,
-                  label: Text('Dark'),
-                  icon: Icon(Icons.dark_mode),
+
+                const SizedBox(height: 24),
+                _settingsSectionHeader(context, l10n.general),
+                _groupWrapper(
+                  context,
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.currency_exchange),
+                        title: Text(l10n.primaryCurrency),
+                        subtitle: Text(
+                          popularCurrencies
+                              .firstWhere((c) => c.code == ref.watch(appStateProvider).currencyCode, 
+                                  orElse: () => popularCurrencies.first)
+                              .name
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => _showCurrencyPicker(context, ref),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.category),
+                        title: Text(l10n.manageCategories),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ManageCategoriesScreen())),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.security),
+                        title: Text(l10n.privacySecurity),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PrivacySecurityScreen())),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.verified_user_outlined),
+                        title: Text(l10n.privacyAudit),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PrivacyAuditScreen())),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.refresh),
+                        title: Text(l10n.rescanEmails),
+                        onTap: () => _rescanEmails(context, l10n),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.backup),
+                        title: Text(l10n.backups),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const BackupScreen())),
+                      ),
+                    ],
+                  ),
                 ),
-                ButtonSegment(
-                  value: ThemeMode.system,
-                  label: Text('System'),
-                  icon: Icon(Icons.brightness_auto),
+
+                const SizedBox(height: 24),
+                _settingsSectionHeader(context, 'About'),
+                _groupWrapper(
+                  context,
+                  child: ListTile(
+                    leading: const Icon(Icons.info_outline),
+                    title: Text(l10n.aboutPennyPilot),
+                    subtitle: const Text('Version 1.0.0-alpha.1.9'),
+                    onTap: () => launchUrl(
+                      Uri.parse('https://github.com/Its-Juice/PennyPilot'),
+                      mode: LaunchMode.externalApplication,
+                    ),
+                  ),
                 ),
+                const SizedBox(height: 48),
               ],
-              selected: {ref.watch(themeModeProvider).mode},
-              onSelectionChanged: (Set<ThemeMode> newSelection) {
-                ref.read(themeModeProvider.notifier).setThemeMode(newSelection.first);
-              },
-            ),
-          ),
-          const SizedBox(height: 16),
-          SwitchListTile(
-            title: const Text('Pitch Black OLED'),
-            subtitle: const Text('Completely black background for OLED screens'),
-            value: ref.watch(themeModeProvider).isOledMode,
-            onChanged: (bool value) {
-              ref.read(themeModeProvider.notifier).setOledMode(value);
-            },
-            secondary: const Icon(Icons.auto_awesome),
-          ),
-          
-          const Divider(height: 32),
-
-          // Accounts Section
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Text(
-              'Accounts',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.manage_accounts),
-            title: const Text('Manage connected accounts'),
-            subtitle: Text(
-              connectedEmails.isEmpty 
-                ? 'No accounts connected' 
-                : '${connectedEmails.length} account(s) connected'
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ManageAccountsScreen()),
-              );
-            },
-          ),
-          const Divider(height: 32),
-
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Text(
-              'General',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.currency_exchange),
-            title: const Text('Primary Currency'),
-            subtitle: Text(
-              popularCurrencies
-                  .firstWhere((c) => c.code == ref.watch(appStateProvider).currencyCode, 
-                      orElse: () => popularCurrencies.first)
-                  .name
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showCurrencyPicker(context, ref),
-          ),
-          ListTile(
-            leading: const Icon(Icons.category),
-            title: const Text('Manage Categories'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ManageCategoriesScreen()),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.security),
-            title: const Text('Privacy & Security'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const PrivacySecurityScreen()),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.verified_user_outlined),
-            title: const Text('Privacy Audit'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const PrivacyAuditScreen()),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.refresh),
-            title: const Text('Rescan Emails'),
-            onTap: () async {
-              if (!mounted) return;
-              try {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Scanning emails...')),
-                );
-                await ref.read(emailServiceProvider).scanEmails();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Scan complete')),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Scan failed: $e')),
-                  );
-                }
-              }
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.backup),
-            title: const Text('Backups'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const BackupScreen()),
-              );
-            },
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: const Text('About PennyPilot'),
-            subtitle: const Text('Version 1.0.0-alpha.1.7'),
-            onTap: () => launchUrl(
-              Uri.parse('https://github.com/Its-Juice/PennyPilot'),
-              mode: LaunchMode.externalApplication,
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _settingsSectionHeader(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 16, 16, 12),
+      child: Text(
+        title.toUpperCase(),
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+          color: Theme.of(context).colorScheme.primary,
+          letterSpacing: 1.2,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _groupWrapper(BuildContext context, {required Widget child}) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withAlpha(51)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: child,
+    );
+  }
+
+  Widget _appearanceSection(BuildContext context, AppLocalizations l10n) {
+    final themeMode = ref.watch(themeModeProvider);
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: SegmentedButton<ThemeMode>(
+            showSelectedIcon: false,
+            segments: [
+              ButtonSegment(value: ThemeMode.light, label: Text(l10n.light), icon: const Icon(Icons.light_mode_outlined)),
+              ButtonSegment(value: ThemeMode.dark, label: Text(l10n.dark), icon: const Icon(Icons.dark_mode_outlined)),
+              ButtonSegment(value: ThemeMode.system, label: Text(l10n.system), icon: const Icon(Icons.brightness_auto)),
+            ],
+            selected: {themeMode.mode},
+            onSelectionChanged: (Set<ThemeMode> newSelection) {
+              ref.read(themeModeProvider.notifier).setThemeMode(newSelection.first);
+            },
+          ),
+        ),
+        const SizedBox(height: 12),
+        _groupWrapper(
+          context,
+          child: SwitchListTile(
+            title: Text(l10n.pitchBlackOled),
+            subtitle: Text(l10n.oledDescription),
+            value: themeMode.isOledMode,
+            onChanged: (bool value) => ref.read(themeModeProvider.notifier).setOledMode(value),
+            secondary: const Icon(Icons.auto_awesome),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _rescanEmails(BuildContext context, AppLocalizations l10n) async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.scanningEmails)));
+      await ref.read(emailServiceProvider).scanEmails();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.scanComplete)));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.scanFailed(e.toString()))));
+      }
+    }
   }
 
   void _showCurrencyPicker(BuildContext context, WidgetRef ref) {
@@ -222,7 +217,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Text(
-                'Select Currency',
+                AppLocalizations.of(context)!.selectCurrency,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),

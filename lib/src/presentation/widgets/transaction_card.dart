@@ -65,37 +65,38 @@ class _TransactionCardState extends State<TransactionCard>
     final dateFormat = DateFormat('MMM d, y');
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      elevation: 0,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      color: theme.colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: theme.colorScheme.outlineVariant.withAlpha(51)),
+      ),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: widget.onTap ?? (widget.expandable && widget.transaction.hasLineItems
-            ? _toggleExpanded
-            : null),
-        borderRadius: BorderRadius.circular(12),
+        onTap: widget.onTap ?? (widget.expandable && widget.transaction.hasLineItems ? _toggleExpanded : null),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Main transaction info
               Row(
                 children: [
-                  // Merchant icon/avatar
                   Container(
-                    width: 48,
-                    height: 48,
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(12),
+                      color: theme.colorScheme.primaryContainer.withAlpha(51),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(
                       _getMerchantIcon(),
-                      color: theme.colorScheme.onPrimaryContainer,
-                      size: 24,
+                      color: theme.colorScheme.primary,
+                      size: 20,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   
-                  // Merchant name and date
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,43 +106,39 @@ class _TransactionCardState extends State<TransactionCard>
                             Expanded(
                               child: Text(
                                 widget.transaction.merchantName,
-                                style: theme.textTheme.titleMedium,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            if (widget.showConfidence) ...[
-                              const SizedBox(width: 8),
-                              ConfidenceBadge(
-                                level: widget.transaction.extractionConfidence.name,
-                                compact: true,
-                              ),
-                            ],
                           ],
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Row(
                           children: [
                             Text(
                               dateFormat.format(widget.transaction.date),
-                              style: theme.textTheme.bodySmall,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
                             ),
                             if (widget.transaction.category != null) ...[
                               const SizedBox(width: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: theme.colorScheme.secondaryContainer
-                                      .withAlpha(128),
-                                  borderRadius: BorderRadius.circular(4),
+                                  color: theme.colorScheme.secondaryContainer.withAlpha(51),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: theme.colorScheme.secondary.withAlpha(26)),
                                 ),
                                 child: Text(
                                   widget.transaction.category!,
                                   style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.onSecondaryContainer,
+                                    color: theme.colorScheme.secondary,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
@@ -154,23 +151,32 @@ class _TransactionCardState extends State<TransactionCard>
                   
                   const SizedBox(width: 12),
                   
-                  // Amount
                   Builder(
                     builder: (context) {
                       final isIncome = widget.transaction.kind == TransactionKind.income;
                       final amount = widget.transaction.amount * (isIncome ? 1 : -1);
-                      final color = isIncome 
-                          ? Colors.green // Or theme.colorScheme.primary if it fits
-                          : theme.colorScheme.onSurface;
                       
-                      return AmountDisplay(
-                        amount: amount,
-                        currency: widget.transaction.currency,
-                        showSign: true,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: isIncome ? color : null,
-                        ),
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          AmountDisplay(
+                            amount: amount,
+                            currency: widget.transaction.currency,
+                            showSign: true,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: isIncome ? Colors.green : theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          if (widget.showConfidence)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: ConfidenceBadge(
+                                level: widget.transaction.extractionConfidence.name,
+                                compact: true,
+                              ),
+                            ),
+                        ],
                       );
                     }
                   ),
