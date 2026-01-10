@@ -22,200 +22,233 @@ class SubscriptionCard extends StatelessWidget {
     final theme = Theme.of(context);
     final dateFormat = DateFormat('MMM d, y');
 
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      color: theme.colorScheme.surfaceContainerLow,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-        side: BorderSide(color: theme.colorScheme.outlineVariant.withAlpha(51)),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withAlpha(12),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.secondaryContainer.withAlpha(51),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Icon(
-                      _getServiceIcon(),
-                      color: theme.colorScheme.secondary,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          subscription.serviceName,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            LifecycleBadge(
-                              state: subscription.lifecycleState.name,
-                              compact: true,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(28),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    _buildServiceIcon(theme),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            subscription.serviceName,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: -0.5,
                             ),
-                            if (subscription.isTrial) ...[
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.tertiaryContainer.withAlpha(51),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: theme.colorScheme.tertiary.withAlpha(26)),
-                                ),
-                                child: Text(
-                                  'Trial',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.tertiary,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  const SizedBox(width: 12),
-                  
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      AmountDisplay(
-                        amount: subscription.amount,
-                        currency: subscription.currency,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        _getFrequencyLabel(),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-
-              if (showDetails) ...[
-                const SizedBox(height: 16),
-                const Divider(height: 1),
-                const SizedBox(height: 12),
-
-                // Details grid
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildDetailItem(
-                        context,
-                        icon: Icons.calendar_today,
-                        label: 'Next Renewal',
-                        value: dateFormat.format(subscription.nextRenewalDate),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildDetailItem(
-                        context,
-                        icon: Icons.repeat,
-                        label: 'Consistency',
-                        value: '${subscription.frequencyConsistency}%',
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 12),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildDetailItem(
-                        context,
-                        icon: Icons.history,
-                        label: 'First Seen',
-                        value: dateFormat.format(subscription.firstSeenDate),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildDetailItem(
-                        context,
-                        icon: Icons.receipt,
-                        label: 'Charges',
-                        value: '${subscription.chargeCount}',
-                      ),
-                    ),
-                  ],
-                ),
-
-                if (subscription.isZombie) ...[
-                  const SizedBox(height: 12),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.errorContainer.withAlpha(128),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: theme.colorScheme.error.withAlpha(77)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.warning_amber_rounded, size: 20, color: theme.colorScheme.error),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
                             children: [
-                              Text(
-                                'Potential Zombie Subscription',
-                                style: theme.textTheme.labelMedium?.copyWith(
-                                  color: theme.colorScheme.error,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              LifecycleBadge(
+                                state: subscription.lifecycleState.name,
+                                compact: true,
                               ),
-                              if (subscription.zombieReason != null)
-                                Text(
-                                  subscription.zombieReason!,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onErrorContainer,
-                                  ),
-                                ),
+                              if (subscription.isTrial) ...[
+                                const SizedBox(width: 8),
+                                _buildTrialBadge(theme),
+                              ],
                             ],
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    _buildAmountSection(theme),
+                  ],
+                ),
+                if (showDetails) ...[
+                  const SizedBox(height: 20),
+                  _buildDetailsGrid(context, dateFormat),
+                  if (subscription.isZombie)
+                    _buildZombieAlert(theme),
                 ],
               ],
-            ],
+            ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildServiceIcon(ThemeData theme) {
+    return Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            theme.colorScheme.secondaryContainer.withAlpha(100),
+            theme.colorScheme.secondaryContainer.withAlpha(50),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.secondary.withAlpha(26)),
+      ),
+      child: Icon(
+        _getServiceIcon(),
+        color: theme.colorScheme.secondary,
+        size: 24,
+      ),
+    );
+  }
+
+  Widget _buildTrialBadge(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.tertiaryContainer.withAlpha(51),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.colorScheme.tertiary.withAlpha(26)),
+      ),
+      child: Text(
+        'Trial',
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.tertiary,
+          fontWeight: FontWeight.bold,
+          fontSize: 10,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAmountSection(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        AmountDisplay(
+          amount: subscription.amount,
+          currency: subscription.currency,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.secondary,
+          ),
+        ),
+        Text(
+          _getFrequencyLabel(),
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant.withAlpha(150),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDetailsGrid(BuildContext context, DateFormat dateFormat) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildDetailItem(
+                context,
+                icon: Icons.calendar_today_rounded,
+                label: 'Next Renewal',
+                value: dateFormat.format(subscription.nextRenewalDate),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildDetailItem(
+                context,
+                icon: Icons.repeat_rounded,
+                label: 'Consistency',
+                value: '${subscription.frequencyConsistency}%',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildDetailItem(
+                context,
+                icon: Icons.history_rounded,
+                label: 'First Seen',
+                value: dateFormat.format(subscription.firstSeenDate),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildDetailItem(
+                context,
+                icon: Icons.receipt_rounded,
+                label: 'Total Charges',
+                value: '${subscription.chargeCount}',
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildZombieAlert(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.errorContainer.withAlpha(30),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: theme.colorScheme.error.withAlpha(51)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.report_problem_rounded, color: theme.colorScheme.error, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'POTENTIAL ZOMBIE',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.error,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  if (subscription.zombieReason != null)
+                    Text(
+                      subscription.zombieReason!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

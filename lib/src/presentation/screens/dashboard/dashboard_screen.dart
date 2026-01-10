@@ -7,6 +7,11 @@ import 'package:pennypilot/src/presentation/screens/subscriptions/subscriptions_
 import 'package:pennypilot/src/presentation/screens/insights/insights_screen.dart';
 import 'package:pennypilot/src/presentation/screens/settings/settings_screen.dart';
 import 'package:pennypilot/src/localization/generated/app_localizations.dart';
+import 'package:pennypilot/src/presentation/screens/transactions/add_transaction_sheet.dart';
+import 'package:pennypilot/src/presentation/screens/subscriptions/add_subscription_sheet.dart';
+import 'package:pennypilot/src/presentation/screens/transactions/receipt_scan_screen.dart';
+import 'package:pennypilot/src/presentation/widgets/status_dialogs.dart';
+import 'package:pennypilot/src/presentation/providers/email_provider.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   final bool isDemoMode;
@@ -82,7 +87,24 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ],
             ),
           Expanded(
-            child: _screens[ref.watch(dashboardIndexProvider)],
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: ScaleTransition(
+                    scale: Tween<double>(begin: 0.95, end: 1.0).animate(
+                      CurvedAnimation(parent: animation, curve: Curves.easeOut),
+                    ),
+                    child: child,
+                  ),
+                );
+              },
+              child: Container(
+                key: ValueKey(ref.watch(dashboardIndexProvider)),
+                child: _screens[ref.watch(dashboardIndexProvider)],
+              ),
+            ),
           ),
         ],
       ),
@@ -121,6 +143,106 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ),
               ],
             ),
+      floatingActionButton: ref.watch(dashboardIndexProvider) < 4 
+          ? FloatingActionButton(
+              onPressed: () => _showActionMenu(context),
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
+  }
+
+  void _showActionMenu(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.receipt_long),
+                title: Text(l10n.addEntry),
+                onPressed: () {
+                  Navigator.pop(context);
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    useSafeArea: true,
+                    builder: (context) => const AddTransactionSheet(),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.subscriptions),
+                title: Text(l10n.addSubscription),
+                onPressed: () {
+                  Navigator.pop(context);
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    useSafeArea: true,
+                    builder: (context) => const AddSubscriptionSheet(),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.document_scanner),
+                title: Text(l10n.scanReceipt),
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ReceiptScanScreen()),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.sync),
+                title: Text(l10n.scanEmails),
+                onPressed: () async {
+                  Navigator.pop(context);
+                  _performEmailScan(context);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _performEmailScan(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const ScanningDialog(),
+      );
+      
+      final count = await ref.read(emailServiceProvider).scanEmails();
+      
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        showDialog(
+          context: context,
+          builder: (context) => SuccessDialog(count: count),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.errorScanning(e.toString())), 
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
   }
 }

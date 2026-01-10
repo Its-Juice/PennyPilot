@@ -41,13 +41,6 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
         slivers: [
           SliverAppBar.large(
             title: Text(l10n.subscriptions),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: _showAddSheet,
-                tooltip: l10n.addSubscription,
-              ),
-            ],
           ),
           
           subscriptionsAsync.when(
@@ -153,48 +146,90 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
   Widget _buildRefinedStats(BuildContext context, Map<String, dynamic> stats) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final monthlyTotal = stats['totalMonthlySpend'] ?? 0.0;
+    final annualTotal = monthlyTotal * 12;
     
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: theme.colorScheme.secondaryContainer.withAlpha(51),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: theme.colorScheme.secondary.withAlpha(26)),
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withAlpha(12),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(color: theme.colorScheme.outlineVariant.withAlpha(51)),
       ),
       child: Column(
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                l10n.monthlySpend,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: theme.colorScheme.secondary,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.monthlySpend.toUpperCase(),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.secondary,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    AmountDisplay(
+                      amount: monthlyTotal,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              AmountDisplay(
-                amount: stats['totalMonthlySpend'] ?? 0.0,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                  fontWeight: FontWeight.bold,
+              Container(height: 40, width: 1, color: theme.colorScheme.outlineVariant.withAlpha(51)),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'PROJECTED ANNUAL',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      AmountDisplay(
+                        amount: annualTotal,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 24),
+          const Divider(height: 1),
+          const SizedBox(height: 20),
           IntrinsicHeight(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStatItem(context, l10n.active, stats['active']?.toString() ?? '0', Icons.check_circle),
-                _summaryDivider(theme),
-                _buildStatItem(context, l10n.trial, stats['trial']?.toString() ?? '0', Icons.schedule),
-                _summaryDivider(theme),
-                _buildStatItem(context, l10n.paused, stats['paused']?.toString() ?? '0', Icons.pause_circle),
-                _summaryDivider(theme),
-                _buildStatItem(context, l10n.ended, stats['ended']?.toString() ?? '0', Icons.cancel),
+                _buildStatItem(context, l10n.active, stats['active']?.toString() ?? '0', Icons.check_circle_rounded),
+                _buildStatItem(context, l10n.trial, stats['trial']?.toString() ?? '0', Icons.bolt_rounded),
+                _buildStatItem(context, l10n.paused, stats['paused']?.toString() ?? '0', Icons.pause_circle_rounded),
+                _buildStatItem(context, l10n.ended, stats['ended']?.toString() ?? '0', Icons.cancel_rounded),
               ],
             ),
           ),

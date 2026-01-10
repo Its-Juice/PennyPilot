@@ -63,211 +63,199 @@ class _TransactionCardState extends State<TransactionCard>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dateFormat = DateFormat('MMM d, y');
+    final isIncome = widget.transaction.kind == TransactionKind.income;
 
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      color: theme.colorScheme.surfaceContainerLow,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: theme.colorScheme.outlineVariant.withAlpha(51)),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withAlpha(12),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: widget.onTap ?? (widget.expandable && widget.transaction.hasLineItems ? _toggleExpanded : null),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer.withAlpha(51),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Icon(
-                      _getMerchantIcon(),
-                      color: theme.colorScheme.primary,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                widget.transaction.merchantName,
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: widget.onTap ?? (widget.expandable && widget.transaction.hasLineItems ? _toggleExpanded : null),
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    _buildMerchantIcon(theme),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.transaction.merchantName,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: -0.5,
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            Text(
-                              dateFormat.format(widget.transaction.date),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            if (widget.transaction.category != null) ...[
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.secondaryContainer.withAlpha(51),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: theme.colorScheme.secondary.withAlpha(26)),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Text(
+                                dateFormat.format(widget.transaction.date),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant.withAlpha(180),
                                 ),
-                                child: Text(
+                              ),
+                              if (widget.transaction.category != null) ...[
+                                _buildCategoryPoint(theme),
+                                Text(
                                   widget.transaction.category!,
                                   style: theme.textTheme.labelSmall?.copyWith(
                                     color: theme.colorScheme.secondary,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                              ),
+                              ],
                             ],
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  const SizedBox(width: 12),
-                  
-                  Builder(
-                    builder: (context) {
-                      final isIncome = widget.transaction.kind == TransactionKind.income;
-                      final amount = widget.transaction.amount * (isIncome ? 1 : -1);
-                      
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          AmountDisplay(
-                            amount: amount,
-                            currency: widget.transaction.currency,
-                            showSign: true,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: isIncome ? Colors.green : theme.colorScheme.onSurface,
-                            ),
                           ),
-                          if (widget.showConfidence)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 2),
-                              child: ConfidenceBadge(
-                                level: widget.transaction.extractionConfidence.name,
-                                compact: true,
-                              ),
-                            ),
                         ],
-                      );
-                    }
-                  ),
-                ],
-              ),
-
-              // Expandable line items section
-              if (widget.expandable && widget.transaction.hasLineItems)
-                SizeTransition(
-                  sizeFactor: _expandAnimation,
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 16),
-                      const Divider(height: 1),
-                      const SizedBox(height: 12),
-                      
-                      // Line items breakdown
-                      if (widget.transaction.subtotalAmount != null)
-                        _buildBreakdownRow(
-                          context,
-                          'Subtotal',
-                          widget.transaction.subtotalAmount!,
-                        ),
-                      if (widget.transaction.taxAmount != null)
-                        _buildBreakdownRow(
-                          context,
-                          'Tax',
-                          widget.transaction.taxAmount!,
-                        ),
-                      if (widget.transaction.discountAmount != null)
-                        _buildBreakdownRow(
-                          context,
-                          'Discount',
-                          -widget.transaction.discountAmount!,
-                          isDiscount: true,
-                        ),
-                      if (widget.transaction.tipAmount != null)
-                        _buildBreakdownRow(
-                          context,
-                          'Tip',
-                          widget.transaction.tipAmount!,
-                        ),
-                      
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Total',
-                              style: theme.textTheme.titleSmall,
-                            ),
-                            AmountDisplay(
-                              amount: widget.transaction.amount,
-                              currency: widget.transaction.currency,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-              // Expand indicator
-              if (widget.expandable && widget.transaction.hasLineItems)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Center(
-                    child: RotationTransition(
-                      turns: Tween(begin: 0.0, end: 0.5).animate(_expandAnimation),
-                      child: Icon(
-                        Icons.keyboard_arrow_down,
-                        size: 20,
-                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    _buildAmountSection(theme, isIncome),
+                  ],
                 ),
-            ],
+                if (widget.expandable && widget.transaction.hasLineItems)
+                  _buildExpandableSection(theme),
+                if (widget.expandable && widget.transaction.hasLineItems)
+                  _buildExpandIndicator(theme),
+              ],
+            ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMerchantIcon(ThemeData theme) {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            theme.colorScheme.surfaceContainerHighest,
+            theme.colorScheme.surfaceContainerLow,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withAlpha(51)),
+      ),
+      child: Icon(
+        _getMerchantIcon(),
+        color: theme.colorScheme.primary.withAlpha(200),
+        size: 22,
+      ),
+    );
+  }
+
+  Widget _buildCategoryPoint(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: Icon(Icons.circle, size: 4, color: theme.colorScheme.outlineVariant),
+    );
+  }
+
+  Widget _buildAmountSection(ThemeData theme, bool isIncome) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        AmountDisplay(
+          amount: widget.transaction.amount * (isIncome ? 1 : -1),
+          currency: widget.transaction.currency,
+          showSign: true,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: isIncome ? Colors.green.shade600 : theme.colorScheme.onSurface,
+          ),
+        ),
+        if (widget.showConfidence)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: ConfidenceBadge(
+              level: widget.transaction.extractionConfidence.name,
+              compact: true,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildExpandableSection(ThemeData theme) {
+    return SizeTransition(
+      sizeFactor: _expandAnimation,
+      child: Column(
+        children: [
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerLow.withAlpha(128),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: theme.colorScheme.outlineVariant.withAlpha(26)),
+            ),
+            child: Column(
+              children: [
+                if (widget.transaction.subtotalAmount != null)
+                  _buildBreakdownRow(context, 'Subtotal', widget.transaction.subtotalAmount!),
+                if (widget.transaction.taxAmount != null)
+                  _buildBreakdownRow(context, 'Tax', widget.transaction.taxAmount!),
+                if (widget.transaction.discountAmount != null)
+                  _buildBreakdownRow(context, 'Discount', -widget.transaction.discountAmount!, isDiscount: true),
+                if (widget.transaction.tipAmount != null)
+                  _buildBreakdownRow(context, 'Tip', widget.transaction.tipAmount!),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                  child: Divider(height: 1),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Total', style: theme.textTheme.labelLarge),
+                    AmountDisplay(
+                      amount: widget.transaction.amount,
+                      currency: widget.transaction.currency,
+                      style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExpandIndicator(ThemeData theme) {
+    return Center(
+      child: RotationTransition(
+        turns: Tween(begin: 0.0, end: 0.5).animate(_expandAnimation),
+        child: Icon(
+          Icons.keyboard_arrow_down_rounded,
+          size: 20,
+          color: theme.colorScheme.onSurfaceVariant.withAlpha(100),
         ),
       ),
     );

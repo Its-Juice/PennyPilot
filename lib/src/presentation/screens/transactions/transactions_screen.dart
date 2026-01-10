@@ -70,15 +70,6 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                    });
                 },
               ),
-              IconButton(
-                icon: const Icon(Icons.document_scanner),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ReceiptScanScreen()),
-                  );
-                },
-              ),
               if (!_isSearching)
                 IconButton(
                   icon: const Icon(Icons.filter_list),
@@ -132,67 +123,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                       child: _buildRefinedSummary(context, filteredTransactions),
                     ),
                   ),
-                  if (_filterCategory != 'All' || _sortBy != 'date')
-                    SliverToBoxAdapter(
-                      child: SizedBox(
-                        height: 48,
-                        child: ListView(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            if (_filterCategory != 'All')
-                              Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: InputChip(
-                                  label: Text(_filterCategory),
-                                  onDeleted: () => setState(() => _filterCategory = 'All'),
-                                ),
-                              ),
-                            if (_sortBy != 'date')
-                              InputChip(
-                                label: Text('${_sortBy[0].toUpperCase()}${_sortBy.substring(1)}'),
-                                onDeleted: () => setState(() => _sortBy = 'date'),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  
-                  if (filteredTransactions.isEmpty)
-                    SliverFillRemaining(
-                      child: EmptyState(
-                        icon: Icons.filter_alt_off,
-                        title: l10n.noMatches,
-                        message: l10n.tryAdjustingFilters,
-                        action: TextButton(
-                          onPressed: () => setState(() { _filterCategory = 'All'; _sortBy = 'date'; }),
-                          child: Text(l10n.clearFilters),
-                        ),
-                      ),
-                    )
-                  else
-                    SliverPadding(
-                      padding: const EdgeInsets.only(bottom: 80),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final transaction = filteredTransactions[index];
-                            return TransactionCard(
-                              transaction: transaction,
-                              showConfidence: true,
-                              expandable: true,
-                              onTap: () => Navigator.push(
-                                context,
-                                SharedAxisPageRoute(
-                                  page: TransactionDetailsScreen(transaction: transaction),
-                                ),
-                              ),
-                            );
-                          },
-                          childCount: filteredTransactions.length,
-                        ),
-                      ),
-                    ),
+                  ..._buildGroupedList(context, filteredTransactions, l10n),
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
                 ],
               );
             },
@@ -207,17 +139,102 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          useSafeArea: true,
-          builder: (context) => const AddTransactionSheet(),
+    );
+  }
+
+  List<Widget> _buildGroupedList(BuildContext context, List<TransactionModel> transactions, AppLocalizations l10n) {
+    if (transactions.isEmpty) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: EmptyState(
+            icon: Icons.filter_alt_off,
+            title: l10n.noMatches,
+            message: l10n.tryAdjustingFilters,
+            action: TextButton(
+              onPressed: () => setState(() { _filterCategory = 'All'; _sortBy = 'date'; }),
+              child: Text(l10n.clearFilters),
+            ),
+          ),
+        )
+      ];
+    }
+
+    if (_sortBy != 'date') {
+      return [
+        SliverPadding(
+          padding: const EdgeInsets.only(bottom: 20),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => _buildTransactionItem(transactions[index]),
+              childCount: transactions.length,
+            ),
+          ),
+        )
+      ];
+    }
+
+    final groups = <DateTime, List<TransactionModel>>{};
+    for (final t in transactions) {
+      final date = DateTime(t.date.year, t.date.month, t.date.day);
+      groups.putIfAbsent(date, () => []).add(t);
+    }
+
+    final sortedDates = groups.keys.toList()..sort((a, b) => b.compareTo(a));
+
+    return sortedDates.map((date) {
+      return SliverMainAxisGroup(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+              child: Text(
+                _formatHeaderDate(date, l10n),
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ),
+          ),
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => _buildTransactionItem(groups[date]![index]),
+              childCount: groups[date]!.length,
+            ),
+          ),
+        ],
+      );
+    }).toList();
+  }
+
+  Widget _buildTransactionItem(TransactionModel transaction) {
+    return TransactionCard(
+      transaction: transaction,
+      showConfidence: true,
+      expandable: true,
+      onTap: () => Navigator.push(
+        context,
+        SharedAxisPageRoute(
+          page: TransactionDetailsScreen(transaction: transaction),
         ),
-        icon: const Icon(Icons.add),
-        label: Text(l10n.addEntry),
       ),
     );
+  }
+
+  String _formatHeaderDate(DateTime date, AppLocalizations l10n) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+
+    if (date == today) return l10n.today.toUpperCase();
+    if (date == yesterday) return l10n.yesterday.toUpperCase();
+    
+    if (date.year == now.year) {
+      return DateFormat('MMMM d').format(date).toUpperCase();
+    }
+    return DateFormat('MMMM d, y').format(date).toUpperCase();
   }
 
   Widget _buildRefinedSummary(BuildContext context, List<TransactionModel> transactions) {
@@ -226,10 +243,11 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     final l10n = AppLocalizations.of(context)!;
     
     return Container(
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         border: Border.all(color: theme.colorScheme.outlineVariant.withAlpha(51)),
       ),
       child: IntrinsicHeight(
@@ -243,7 +261,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 theme.colorScheme.primary,
               ),
             ),
-            VerticalDivider(color: theme.colorScheme.outlineVariant.withAlpha(51), thickness: 1, indent: 8, endIndent: 8),
+            VerticalDivider(color: theme.colorScheme.outlineVariant.withAlpha(51), thickness: 1, indent: 4, endIndent: 4),
             Expanded(
               child: _summaryColumn(
                 context, 
@@ -252,7 +270,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 theme.colorScheme.onSurface,
               ),
             ),
-            VerticalDivider(color: theme.colorScheme.outlineVariant.withAlpha(51), thickness: 1, indent: 8, endIndent: 8),
+            VerticalDivider(color: theme.colorScheme.outlineVariant.withAlpha(51), thickness: 1, indent: 4, endIndent: 4),
             Expanded(
               child: _summaryColumn(
                 context, 

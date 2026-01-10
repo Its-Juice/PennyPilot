@@ -18,6 +18,7 @@ class _CategoryPieChartState extends ConsumerState<CategoryPieChart> {
   Widget build(BuildContext context) {
     final transactionsAsync = ref.watch(recentTransactionsProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
+    final theme = Theme.of(context);
 
     return transactionsAsync.when(
       data: (transactions) {
@@ -28,59 +29,66 @@ class _CategoryPieChartState extends ConsumerState<CategoryPieChart> {
             final data = _processData(transactions, categories);
             if (data.isEmpty) return const SizedBox.shrink();
 
-            return AspectRatio(
-              aspectRatio: 1.3,
-              child: Row(
+            final total = data.values.fold<double>(0, (sum, d) => sum + d.amount);
+
+            return Container(
+              height: 240,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  Expanded(
-                    child: PieChart(
-                      PieChartData(
-                        pieTouchData: PieTouchData(
-                          touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                            setState(() {
-                              if (!event.isInterestedForInteractions ||
-                                  pieTouchResponse == null ||
-                                  pieTouchResponse.touchedSection == null) {
-                                touchedIndex = -1;
-                                return;
-                              }
-                              touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
-                            });
-                          },
-                        ),
-                        borderData: FlBorderData(show: false),
-                        sectionsSpace: 4,
-                        centerSpaceRadius: 40,
-                        sections: _showingSections(data),
+                  PieChart(
+                    PieChartData(
+                      pieTouchData: PieTouchData(
+                        touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                          setState(() {
+                            if (!event.isInterestedForInteractions ||
+                                pieTouchResponse == null ||
+                                pieTouchResponse.touchedSection == null) {
+                              touchedIndex = -1;
+                              return;
+                            }
+                            touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                          });
+                        },
                       ),
+                      borderData: FlBorderData(show: false),
+                      sectionsSpace: 6,
+                      centerSpaceRadius: 75,
+                      sections: _showingSections(data),
                     ),
                   ),
                   Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: data.entries.map((entry) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                        child: _Indicator(
-                          color: entry.value.color,
-                          text: entry.key,
-                          isSquare: false,
-                          size: touchedIndex == data.keys.toList().indexOf(entry.key) ? 14 : 10,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'TOTAL',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 2,
                         ),
-                      );
-                    }).toList(),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        NumberFormat.compactSimpleCurrency().format(total),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 28),
                 ],
               ),
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, s) => const Center(child: Icon(Icons.error)),
+          loading: () => const SizedBox(height: 240, child: Center(child: CircularProgressIndicator())),
+          error: (e, s) => const SizedBox(height: 240, child: Center(child: Icon(Icons.error))),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, s) => const Center(child: Icon(Icons.error)),
+      loading: () => const SizedBox(height: 240, child: Center(child: CircularProgressIndicator())),
+      error: (e, s) => const SizedBox(height: 240, child: Center(child: Icon(Icons.error))),
     );
   }
 

@@ -21,56 +21,85 @@ class SpendingSummaryCard extends ConsumerWidget {
       data: (transactions) {
         final totalSpent = transactions.fold<double>(0, (sum, t) => sum + t.amount);
         final monthName = DateFormat.MMMM().format(DateTime.now());
+        final theme = Theme.of(context);
 
-        return Card(
-          elevation: 0,
-          color: Theme.of(context).colorScheme.primaryContainer.withAlpha(51), // Very subtle tonal background
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-            side: BorderSide(
-              color: Theme.of(context).colorScheme.primary.withAlpha(26),
-              width: 1,
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                theme.colorScheme.primary,
+                theme.colorScheme.primary.withAlpha(200),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
+              BoxShadow(
+                color: theme.colorScheme.primary.withAlpha(60),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Spent in $monthName',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.bold,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Total Spent in $monthName',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.onPrimary.withAlpha(200),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  currencyFormat.format(totalSpent),
-                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurface,
+                  Icon(
+                    Icons.trending_up,
+                    color: theme.colorScheme.onPrimary.withAlpha(200),
+                    size: 20,
                   ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                currencyFormat.format(totalSpent),
+                style: theme.textTheme.displaySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onPrimary,
+                  letterSpacing: -1,
                 ),
-                const SizedBox(height: 16),
-                Row(
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.onPrimary.withAlpha(40),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       Icons.receipt_long,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.secondary,
+                      size: 14,
+                      color: theme.colorScheme.onPrimary,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Text(
                       '${transactions.length} Transactions',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onPrimary,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },

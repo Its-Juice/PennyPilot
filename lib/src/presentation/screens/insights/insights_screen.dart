@@ -130,9 +130,9 @@ class InsightsScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer.withAlpha(51),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: theme.colorScheme.primary.withAlpha(26)),
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withAlpha(51)),
       ),
       child: Row(
         children: [
@@ -140,8 +140,8 @@ class InsightsScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l10n.totalVolume, style: theme.textTheme.labelMedium),
-                const SizedBox(height: 4),
+                Text(l10n.totalVolume.toUpperCase(), style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
                 Text(
                   format.format(total),
                   style: theme.textTheme.titleLarge?.copyWith(
@@ -152,15 +152,15 @@ class InsightsScreen extends ConsumerWidget {
               ],
             ),
           ),
-          Container(height: 40, width: 1, color: theme.colorScheme.primary.withAlpha(51)),
+          Container(height: 40, width: 1, color: theme.colorScheme.outlineVariant.withAlpha(51)),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(left: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(l10n.avgPerDay, style: theme.textTheme.labelMedium),
-                  const SizedBox(height: 4),
+                  Text(l10n.avgPerDay.toUpperCase(), style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
                   Text(
                     format.format(avgPerDay),
                     style: theme.textTheme.titleLarge?.copyWith(

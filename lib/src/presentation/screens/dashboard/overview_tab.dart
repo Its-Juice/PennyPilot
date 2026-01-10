@@ -24,19 +24,24 @@ class OverviewTab extends ConsumerWidget {
     final transactionsAsync = ref.watch(recentTransactionsProvider);
     final subscriptionsAsync = ref.watch(activeSubscriptionsProvider);
     final appCurrency = ref.watch(appStateProvider).currencyCode;
-    final currencySymbol = CurrencyInfo.getSymbol(appCurrency);
-    final currencyFormat = NumberFormat.currency(
-      symbol: currencySymbol,
-      decimalDigits: 2,
-    );
     final l10n = AppLocalizations.of(context)!;
-
+    final theme = Theme.of(context);
 
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           SliverAppBar.large(
-            title: Text(l10n.appName),
+            expandedHeight: 140,
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(
+                _getGreeting(context),
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+              titlePadding: const EdgeInsetsDirectional.only(start: 16, bottom: 16),
+            ),
             actions: [
               if (isDemoMode)
                 Padding(
@@ -44,62 +49,35 @@ class OverviewTab extends ConsumerWidget {
                   child: Chip(
                     label: Text(l10n.demo),
                     visualDensity: VisualDensity.compact,
+                    backgroundColor: theme.colorScheme.tertiaryContainer,
+                    labelStyle: TextStyle(color: theme.colorScheme.onTertiaryContainer),
                   ),
                 ),
-              IconButton(
-                icon: const Icon(Icons.sync),
-                tooltip: l10n.scanEmails,
-                onPressed: () async {
-                  try {
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) => const ScanningDialog(),
-                    );
-                    
-                    final count = await ref.read(emailServiceProvider).scanEmails();
-                    
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
-                      showDialog(
-                        context: context,
-                        builder: (context) => SuccessDialog(count: count),
-                      );
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(l10n.errorScanning(e.toString())), backgroundColor: Colors.red),
-                      );
-                    }
-                  }
-                },
-              ),
               const SizedBox(width: 8),
             ],
           ),
           SliverPadding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
+                const SizedBox(height: 8),
                 const SpendingSummaryCard(),
                 const SizedBox(height: 16),
                 const SafeToSpend(),
                 
-                const SizedBox(height: 32),
+                const SizedBox(height: 40),
                 _sectionHeader(context, l10n.spendingByCategory),
-                const SizedBox(height: 12),
-                const CategoryPieChart(),
                 const SizedBox(height: 16),
+                const CategoryPieChart(),
+                const SizedBox(height: 20),
                 const CategoriesScroller(),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 40),
                 _sectionHeader(context, l10n.spendingPulse),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 const SpendingPulseChart(),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 40),
                 _sectionHeader(
                   context, 
                   l10n.recentTransactions,
@@ -108,71 +86,74 @@ class OverviewTab extends ConsumerWidget {
                     child: Text(l10n.viewAll),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 transactionsAsync.when(
                   data: (transactions) {
                     if (transactions.isEmpty) return _buildEmptyTransactions(context);
-                    final displayTransactions = transactions.take(5).toList();
-                    return Card(
-                      child: Column(
-                        children: [
-                          ...displayTransactions.map((t) => ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                              child: Text(t.merchantName[0].toUpperCase()),
-                            ),
-                            title: Text(t.merchantName, style: Theme.of(context).textTheme.titleSmall),
-                            subtitle: Text(DateFormat.yMMMd().format(t.date)),
-                            trailing: Text(
-                              currencyFormat.format(t.amount),
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                          )),
-                        ],
-                      ),
+                    final displayTransactions = transactions.take(3).toList();
+                    return Column(
+                      children: displayTransactions.map((t) => TransactionCard(
+                        transaction: t,
+                        expandable: false,
+                        showConfidence: false,
+                        onTap: () => ref.read(dashboardIndexProvider.notifier).state = 1,
+                      )).toList(),
                     );
                   },
                   loading: () => const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator())),
                   error: (e, s) => Text(l10n.errorLoadingTransactions(e.toString())),
                 ),
 
-                const SizedBox(height: 32),
-                _sectionHeader(context, l10n.upcomingSubscriptions),
+                const SizedBox(height: 40),
+                _sectionHeader(
+                  context, 
+                  l10n.upcomingSubscriptions,
+                  trailing: TextButton(
+                    onPressed: () => ref.read(dashboardIndexProvider.notifier).state = 2,
+                    child: Text(l10n.viewAll),
+                  ),
+                ),
                 const SizedBox(height: 12),
                 subscriptionsAsync.when(
                   data: (subscriptions) {
                     if (subscriptions.isEmpty) {
-                      return Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Text(l10n.noActiveSubscriptions, textAlign: TextAlign.center),
-                        ),
+                      return _buildEmptyStateCard(
+                        context,
+                        icon: Icons.subscriptions_outlined,
+                        message: l10n.noActiveSubscriptions,
                       );
                     }
                     final topSubs = subscriptions.take(3).toList();
-                    return Card(
-                      child: Column(
-                        children: [
-                          ...topSubs.map((s) {
-                            final daysUntil = s.nextRenewalDate.difference(DateTime.now()).inDays + 1;
-                            return ListTile(
-                              leading: const CircleAvatar(child: Icon(Icons.event_repeat)),
-                              title: Text(s.serviceName, style: Theme.of(context).textTheme.titleSmall),
-                              subtitle: Text(l10n.renewingInDays(daysUntil > 0 ? daysUntil : 0)),
-                              trailing: Text(
-                                currencyFormat.format(s.amount),
-                                style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w600),
-                              ),
-                            );
-                          }),
-                        ],
-                      ),
+                    return _buildListCard(
+                      context,
+                      topSubs.map((s) {
+                        final daysUntil = s.nextRenewalDate.difference(DateTime.now()).inDays + 1;
+                        return ListTile(
+                          leading: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primaryContainer.withAlpha(51),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(Icons.event_repeat, size: 20, color: theme.colorScheme.primary),
+                          ),
+                          title: Text(s.serviceName, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                          subtitle: Text(l10n.renewingInDays(daysUntil > 0 ? daysUntil : 0)),
+                          trailing: AmountDisplay(
+                            amount: s.amount,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: theme.colorScheme.primary, 
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     );
                   },
                   loading: () => const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator())),
                   error: (e, s) => Text(l10n.errorLoadingSubscriptions(e.toString())),
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 100), // Space for FAB
               ]),
             ),
           ),
@@ -181,19 +162,61 @@ class OverviewTab extends ConsumerWidget {
     );
   }
 
+  String _getGreeting(BuildContext context) {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  }
+
   Widget _sectionHeader(BuildContext context, String title, {Widget? trailing}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
             color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         if (trailing != null) trailing,
       ],
+    );
+  }
+
+  Widget _buildListCard(BuildContext context, List<Widget> children) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withAlpha(51)),
+      ),
+      child: Column(
+        children: children,
+      ),
+    );
+  }
+
+  Widget _buildEmptyStateCard(BuildContext context, {required IconData icon, required String message}) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withAlpha(51)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          children: [
+            Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(128), size: 32),
+            const SizedBox(height: 12),
+            Text(message, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium),
+          ],
+        ),
+      ),
     );
   }
 
@@ -204,21 +227,22 @@ class OverviewTab extends ConsumerWidget {
       color: Theme.of(context).colorScheme.surfaceContainerLow,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withAlpha(51)),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
+                color: Theme.of(context).colorScheme.primaryContainer.withAlpha(51),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.email_outlined,
                 size: 32,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
             const SizedBox(height: 24),
@@ -243,7 +267,7 @@ class OverviewTab extends ConsumerWidget {
                   MaterialPageRoute(builder: (context) => const ConnectEmailScreen()),
                 );
               },
-              icon: const Icon(Icons.add),
+              icon: const Icon(Icons.email),
               label: Text(l10n.connectEmail),
             ),
           ],
