@@ -131,6 +131,8 @@
   "serviceName": "Όνομα Υπηρεσίας",
   "serviceNameHint": "π.χ. Netflix, Spotify",
   "required": "Απαιτείται",
+  "today": "Σήμερα",
+  "yesterday": "Χθες",
   "invalid": "Μη έγκυρο",
   "billingCycle": "Κύκλος Χρέωσης",
   "nextRenewalDate": "Επόμενη Ημερομηνία Ανανέωσης",

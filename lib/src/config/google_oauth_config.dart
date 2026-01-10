@@ -11,7 +11,8 @@ class GoogleOAuthConfig {
   static const String mobileClientId = Secrets.googleMobileClientId;
 
   // Web OAuth client ID (Required for Android serverClientId)
-  static const String webClientId = Secrets.googleWebClientId;
+  // For security, you should move this to Secrets class in secrets.dart
+  static const String webClientId = 'REPLACE_ME_WITH_REAL_WEB_CLIENT_ID.apps.googleusercontent.com';
 
   static const List<String> gmailReadOnlyScopes = [
     'email',
