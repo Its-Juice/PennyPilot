@@ -10,7 +10,11 @@ class GoogleOAuthConfig {
   // Mobile OAuth client ID (Android / iOS)
   static const String mobileClientId = Secrets.googleMobileClientId;
 
+  // Web OAuth client ID (Required for Android serverClientId)
+  static const String webClientId = Secrets.googleWebClientId;
+
   static const List<String> gmailReadOnlyScopes = [
+    'email',
     'https://www.googleapis.com/auth/gmail.readonly',
   ];
 }

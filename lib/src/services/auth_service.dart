@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logging/logging.dart';
@@ -27,6 +28,7 @@ class AuthService extends ChangeNotifier {
   AuthService() {
     _googleSignIn = GoogleSignIn(
       clientId: _isMobile ? GoogleOAuthConfig.mobileClientId : null,
+      serverClientId: _isMobile ? GoogleOAuthConfig.webClientId : null,
       scopes: GoogleOAuthConfig.gmailReadOnlyScopes,
     );
     _initialize();
@@ -90,30 +92,47 @@ class AuthService extends ChangeNotifier {
 
   Future<String?> _signInMobile() async {
     try {
-      // For mobile, we might want to force choosing an account if adding multiple
-      final GoogleSignInAccount? account = await _googleSignIn.signIn();
+      // Force a fresh account picker by signing out first
+      await _googleSignIn.signOut();
+      
+      GoogleSignInAccount? account = await _googleSignIn.signIn();
 
       if (account == null) {
         _logger.info('Sign in returned null (user cancelled or failed)');
         return null;
-      } else {
-        _logger.info('Signed in as ${account.email}');
-
-        _connectedEmails.add(account.email);
-        
-        // Get client and store it
-        final client = _GoogleSignInHttpClient(account);
-        _clients[account.email] = client;
-
-        await _saveAccountsState();
-        notifyListeners();
-
-        return account.email;
       }
+      
+      return await _handleSignInSuccess(account);
     } catch (e, stack) {
+      if (e is PlatformException && e.code == 'sign_in_failed') {
+        _logger.warning('Caught sign_in_failed, attempting disconnect and retry...');
+        try {
+          await _googleSignIn.disconnect();
+          final account = await _googleSignIn.signIn();
+          if (account != null) {
+            return await _handleSignInSuccess(account);
+          }
+        } catch (retryError) {
+          _logger.severe('Retry after disconnect failed', retryError);
+        }
+      }
       _logger.severe('Google Sign-In failed', e, stack);
       rethrow;
     }
+  }
+
+  Future<String?> _handleSignInSuccess(GoogleSignInAccount account) async {
+    _logger.info('Signed in as ${account.email}');
+    _connectedEmails.add(account.email);
+    
+    // Get client and store it
+    final client = _GoogleSignInHttpClient(account);
+    _clients[account.email] = client;
+
+    await _saveAccountsState();
+    notifyListeners();
+
+    return account.email;
   }
 
   Future<String?> _signInDesktop() async {
