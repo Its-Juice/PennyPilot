@@ -8,7 +8,6 @@ import 'package:pennypilot/src/presentation/widgets/safe_to_spend.dart';
 import 'package:pennypilot/src/presentation/widgets/spending_pulse_chart.dart';
 import 'package:pennypilot/src/presentation/widgets/spending_summary_card.dart';
 import 'package:pennypilot/src/presentation/widgets/category_pie_chart.dart';
-import 'package:pennypilot/src/presentation/providers/app_state_provider.dart';
 import 'package:pennypilot/src/localization/generated/app_localizations.dart';
 import 'package:pennypilot/src/presentation/widgets/transaction_card.dart';
 import 'package:pennypilot/src/presentation/widgets/amount_display.dart';
@@ -22,7 +21,7 @@ class OverviewTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final transactionsAsync = ref.watch(recentTransactionsProvider);
     final subscriptionsAsync = ref.watch(activeSubscriptionsProvider);
-    final appCurrency = ref.watch(appStateProvider).currencyCode;
+    // final appCurrency = ref.watch(appStateProvider).currencyCode;
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
@@ -91,8 +90,9 @@ class OverviewTab extends ConsumerWidget {
                 const SizedBox(height: 12),
                 transactionsAsync.when(
                   data: (transactions) {
-                    if (transactions.isEmpty)
+                    if (transactions.isEmpty) {
                       return _buildEmptyTransactions(context);
+                    }
                     final displayTransactions = transactions.take(3).toList();
                     return Column(
                       children: displayTransactions

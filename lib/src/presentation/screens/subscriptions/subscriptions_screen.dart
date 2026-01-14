@@ -13,7 +13,8 @@ class SubscriptionsScreen extends ConsumerStatefulWidget {
   const SubscriptionsScreen({super.key});
 
   @override
-  ConsumerState<SubscriptionsScreen> createState() => _SubscriptionsScreenState();
+  ConsumerState<SubscriptionsScreen> createState() =>
+      _SubscriptionsScreenState();
 }
 
 class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
@@ -35,14 +36,12 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
     final statsAsync = ref.watch(subscriptionStatsProvider);
     final l10n = AppLocalizations.of(context)!;
 
-
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           SliverAppBar.large(
             title: Text(l10n.subscriptions),
           ),
-          
           subscriptionsAsync.when(
             data: (subscriptions) {
               if (subscriptions.isEmpty) {
@@ -63,7 +62,9 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
               var filteredSubscriptions = subscriptions;
               if (_filter != 'all') {
                 final filterState = _getLifecycleState(_filter);
-                filteredSubscriptions = subscriptions.where((s) => s.lifecycleState == filterState).toList();
+                filteredSubscriptions = subscriptions
+                    .where((s) => s.lifecycleState == filterState)
+                    .toList();
               }
 
               return SliverMainAxisGroup(
@@ -75,12 +76,12 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                       error: (_, __) => const SizedBox.shrink(),
                     ),
                   ),
-                  
                   SliverToBoxAdapter(
                     child: SizedBox(
                       height: 56,
                       child: ListView(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
                         scrollDirection: Axis.horizontal,
                         children: [
                           _buildFilterChip(l10n.all, 'all'),
@@ -92,12 +93,13 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                       ),
                     ),
                   ),
-
                   if (filteredSubscriptions.isEmpty)
                     SliverFillRemaining(
                       child: EmptyState(
                         icon: Icons.filter_alt_off,
-                        title: l10n.noFilteredSubscriptions(_filter == 'all' ? l10n.all : _filter.toUpperCase()),
+                        title: l10n.noFilteredSubscriptions(_filter == 'all'
+                            ? l10n.all
+                            : _filter.toUpperCase()),
                         message: l10n.trySelectingDifferentFilter,
                         action: TextButton(
                           onPressed: () => setState(() => _filter = 'all'),
@@ -117,7 +119,9 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                               showDetails: true,
                               onTap: () {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(l10n.detailsFor(subscription.serviceName))),
+                                  SnackBar(
+                                      content: Text(l10n.detailsFor(
+                                          subscription.serviceName))),
                                 );
                               },
                             );
@@ -148,7 +152,7 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
     final l10n = AppLocalizations.of(context)!;
     final monthlyTotal = stats['totalMonthlySpend'] ?? 0.0;
     final annualTotal = monthlyTotal * 12;
-    
+
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       padding: const EdgeInsets.all(24),
@@ -162,7 +166,8 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
             offset: const Offset(0, 8),
           ),
         ],
-        border: Border.all(color: theme.colorScheme.outlineVariant.withAlpha(51)),
+        border:
+            Border.all(color: theme.colorScheme.outlineVariant.withAlpha(51)),
       ),
       child: Column(
         children: [
@@ -191,7 +196,10 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                   ],
                 ),
               ),
-              Container(height: 40, width: 1, color: theme.colorScheme.outlineVariant.withAlpha(51)),
+              Container(
+                  height: 40,
+                  width: 1,
+                  color: theme.colorScheme.outlineVariant.withAlpha(51)),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.only(left: 20),
@@ -226,24 +234,25 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStatItem(context, l10n.active, stats['active']?.toString() ?? '0', Icons.check_circle_rounded),
-                _buildStatItem(context, l10n.trial, stats['trial']?.toString() ?? '0', Icons.bolt_rounded),
-                _buildStatItem(context, l10n.paused, stats['paused']?.toString() ?? '0', Icons.pause_circle_rounded),
-                _buildStatItem(context, l10n.ended, stats['ended']?.toString() ?? '0', Icons.cancel_rounded),
+                _buildStatItem(
+                    context,
+                    l10n.active,
+                    stats['active']?.toString() ?? '0',
+                    Icons.check_circle_rounded),
+                _buildStatItem(context, l10n.trial,
+                    stats['trial']?.toString() ?? '0', Icons.bolt_rounded),
+                _buildStatItem(
+                    context,
+                    l10n.paused,
+                    stats['paused']?.toString() ?? '0',
+                    Icons.pause_circle_rounded),
+                _buildStatItem(context, l10n.ended,
+                    stats['ended']?.toString() ?? '0', Icons.cancel_rounded),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _summaryDivider(ThemeData theme) {
-    return VerticalDivider(
-      color: theme.colorScheme.secondary.withAlpha(51),
-      thickness: 1,
-      indent: 4,
-      endIndent: 4,
     );
   }
 
@@ -254,7 +263,7 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
     IconData icon,
   ) {
     final theme = Theme.of(context);
-    
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [

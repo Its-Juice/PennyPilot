@@ -1,3 +1,4 @@
+import 'package:isar/isar.dart';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
@@ -52,7 +53,8 @@ class BackupService {
   Future<void> exportToCsv() async {
     try {
       final isar = await _databaseService.db;
-      final transactions = await isar.transactionModels.where().findAll();
+      final transactions =
+          await isar.transactionModels.where().sortByDateDesc().findAll();
 
       final List<List<dynamic>> rows = [
         [

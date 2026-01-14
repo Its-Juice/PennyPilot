@@ -1,3 +1,4 @@
+import 'package:isar/isar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pennypilot/src/presentation/providers/data_providers.dart';
