@@ -6,6 +6,8 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import 'package:pennypilot/src/presentation/providers/data_providers.dart';
 import 'package:pennypilot/src/services/receipt_extraction_service.dart';
 import 'package:intl/intl.dart';
+import 'package:pennypilot/src/data/models/transaction_model.dart';
+import 'package:isar/isar.dart';
 
 class ReceiptScanScreen extends ConsumerStatefulWidget {
   const ReceiptScanScreen({super.key});
@@ -144,11 +146,46 @@ class _ReceiptScanScreenState extends ConsumerState<ReceiptScanScreen> {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () {
-                  // TODO: Save to database
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Saving to local database...')),
-                  );
+                onPressed: () async {
+                  try {
+                    final isar = ref.read(isarProvider);
+                    final categorizationService = ref.read(categorizationServiceProvider);
+                    
+                    final categoryId = await categorizationService.categorizeMerchant(_result!.merchantName);
+                    
+                    final newTransaction = TransactionModel()
+                      ..merchantName = _result!.merchantName
+                      ..rawMerchantName = _result!.rawMerchantName
+                      ..amount = _result!.totalAmount
+                      ..subtotalAmount = _result!.subtotalAmount
+                      ..taxAmount = _result!.taxAmount
+                      ..tipAmount = _result!.tipAmount
+                      ..discountAmount = _result!.discountAmount
+                      ..date = _result!.date
+                      ..createdAt = DateTime.now()
+                      ..origin = TransactionOrigin.imported
+                      ..kind = TransactionKind.expense
+                      ..extractionConfidence = _result!.overallConfidence
+                      ..hasLineItems = _result!.hasLineItems
+                      ..categoryId = categoryId;
+                      
+                    await isar.writeTxn(() async {
+                      await isar.transactionModels.put(newTransaction);
+                    });
+
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Transaction saved successfully!')),
+                      );
+                      Navigator.of(context).pop();
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error saving transaction: $e')),
+                      );
+                    }
+                  }
                 },
                 child: const Text('Import Transaction'),
               ),
