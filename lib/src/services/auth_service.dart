@@ -26,12 +26,39 @@ class AuthService extends ChangeNotifier {
   late final GoogleSignIn _googleSignIn;
 
   AuthService() {
+    // Validate configuration before initializing
+    if (_isMobile) {
+      _validateMobileConfig();
+    }
+    
     _googleSignIn = GoogleSignIn(
       clientId: _isMobile ? GoogleOAuthConfig.mobileClientId : null,
-      serverClientId: _isMobile ? GoogleOAuthConfig.webClientId : null,
+      serverClientId: _isMobile ? _getValidServerClientId() : null,
       scopes: GoogleOAuthConfig.gmailReadOnlyScopes,
+      hostedDomain: null, // Allow any Google account
     );
     _initialize();
+  }
+  
+  void _validateMobileConfig() {
+    if (GoogleOAuthConfig.mobileClientId.isEmpty || 
+        GoogleOAuthConfig.mobileClientId.contains('YOUR_') ||
+        GoogleOAuthConfig.mobileClientId.contains('REPLACE_ME')) {
+      _logger.severe('Invalid mobile client ID configured');
+      throw Exception('Google OAuth mobile client ID is not properly configured. Please check your secrets.dart file.');
+    }
+  }
+  
+  String? _getValidServerClientId() {
+    final webClientId = GoogleOAuthConfig.webClientId;
+    // Only use serverClientId if it's properly configured
+    if (webClientId.isEmpty || 
+        webClientId.contains('REPLACE_ME') ||
+        webClientId.contains('YOUR_')) {
+      _logger.warning('Web client ID not configured, serverClientId will be null');
+      return null; // This is acceptable for some configurations
+    }
+    return webClientId;
   }
 
   // --- Dynamic Platform Configuration ---
@@ -92,32 +119,125 @@ class AuthService extends ChangeNotifier {
 
   Future<String?> _signInMobile() async {
     try {
-      // Force a fresh account picker by signing out first
-      await _googleSignIn.signOut();
+      // First, try silent sign-in to use existing session
+      GoogleSignInAccount? account = await _googleSignIn.signInSilently();
       
-      GoogleSignInAccount? account = await _googleSignIn.signIn();
-
-      if (account == null) {
-        _logger.info('Sign in returned null (user cancelled or failed)');
-        return null;
+      // If silent sign-in succeeds, check if already connected
+      if (account != null) {
+        if (_connectedEmails.contains(account.email)) {
+          // Already connected, return it
+          return account.email;
+        }
+        // Valid account but not in our list, proceed to handle it
+      } else {
+        // Silent sign-in failed, try interactive sign-in
+        account = await _googleSignIn.signIn();
+        
+        if (account == null) {
+          _logger.info('Sign in returned null (user cancelled or failed)');
+          return null;
+        }
       }
       
       return await _handleSignInSuccess(account);
     } catch (e, stack) {
-      if (e is PlatformException && e.code == 'sign_in_failed') {
-        _logger.warning('Caught sign_in_failed, attempting disconnect and retry...');
-        try {
-          await _googleSignIn.disconnect();
-          final account = await _googleSignIn.signIn();
-          if (account != null) {
-            return await _handleSignInSuccess(account);
-          }
-        } catch (retryError) {
-          _logger.severe('Retry after disconnect failed', retryError);
+      // Handle specific error codes
+      if (e is PlatformException) {
+        final errorCode = e.code;
+        final errorMessage = e.message ?? '';
+        
+        _logger.warning('Sign-in error: $errorCode - $errorMessage', e);
+        
+        // Handle sign_in_failed with better recovery
+        if (errorCode == 'sign_in_failed') {
+          return await _handleSignInFailed(e);
         }
+        
+        // Handle network errors
+        if (errorCode == 'network_error' || errorMessage.contains('network') || errorMessage.contains('internet')) {
+          throw PlatformException(
+            code: errorCode,
+            message: 'Network error. Please check your internet connection and try again.',
+            details: e.details,
+          );
+        }
+        
+        // Handle configuration errors
+        if (errorMessage.contains('10:') || errorMessage.contains('DEVELOPER_ERROR') || errorMessage.contains('configuration')) {
+          throw PlatformException(
+            code: errorCode,
+            message: 'OAuth configuration error. Please ensure your Google OAuth credentials are properly configured in the app settings.',
+            details: e.details,
+          );
+        }
+        
+        // Provide user-friendly message for other PlatformExceptions
+        final userMessage = errorMessage.isNotEmpty 
+            ? errorMessage 
+            : 'Sign-in failed. Please try again.';
+        throw PlatformException(
+          code: errorCode,
+          message: userMessage,
+          details: e.details,
+        );
       }
-      _logger.severe('Google Sign-In failed', e, stack);
+      
+      _logger.severe('Google Sign-In failed with unexpected error', e, stack);
       rethrow;
+    }
+  }
+  
+  Future<String?> _handleSignInFailed(PlatformException originalError) async {
+    _logger.warning('Handling sign_in_failed error, attempting recovery...', originalError);
+    
+    try {
+      // First, try to get current account without signing out
+      final currentAccount = await _googleSignIn.signInSilently();
+      if (currentAccount != null && !_connectedEmails.contains(currentAccount.email)) {
+        // We have a valid account that's not in our list, use it
+        return await _handleSignInSuccess(currentAccount);
+      }
+      
+      // If that doesn't work, try disconnect and retry
+      try {
+        await _googleSignIn.disconnect();
+      } catch (disconnectError) {
+        // Ignore disconnect errors - account might not be connected
+        _logger.info('Disconnect failed (expected if not connected): $disconnectError');
+      }
+      
+      // Wait a bit before retrying to avoid race conditions
+      await Future.delayed(const Duration(milliseconds: 800));
+      
+      // Try sign-in again
+      final account = await _googleSignIn.signIn();
+      if (account != null) {
+        return await _handleSignInSuccess(account);
+      }
+      
+      // If still failing, provide helpful error message
+      throw PlatformException(
+        code: 'sign_in_failed',
+        message: 'Unable to sign in. This may be due to:\n'
+            '• OAuth configuration issues\n'
+            '• Network connectivity problems\n'
+            '• Google account restrictions\n\n'
+            'Please check your Google account settings and try again.',
+        details: originalError.details,
+      );
+    } catch (retryError, retryStack) {
+      _logger.severe('Recovery attempt failed', retryError, retryStack);
+      
+      if (retryError is PlatformException) {
+        rethrow;
+      }
+      
+      // Wrap non-PlatformException errors
+      throw PlatformException(
+        code: 'sign_in_failed',
+        message: 'Sign-in failed after recovery attempts. Please try again later or contact support if the problem persists.',
+        details: originalError.details,
+      );
     }
   }
 
@@ -336,13 +456,15 @@ class AuthService extends ChangeNotifier {
       if (_isMobile) {
         try {
            final account = await _googleSignIn.signInSilently();
-           if (account != null) {
+           if (account != null && !_connectedEmails.contains(account.email)) {
              _connectedEmails.add(account.email);
              final client = _GoogleSignInHttpClient(account);
              _clients[account.email] = client;
+             _logger.info('Restored mobile session for ${account.email}');
            }
         } catch (e) {
-          _logger.warning('Mobile silent sign-in failed', e);
+          // Silent sign-in failure is expected if user hasn't signed in before
+          _logger.fine('Mobile silent sign-in failed (expected if not signed in)', e);
         }
       } else {
         // Desktop Restore for ALL accounts

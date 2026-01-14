@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pennypilot/src/presentation/providers/auth_provider.dart';
 import 'package:pennypilot/src/presentation/screens/dashboard/dashboard_screen.dart';
@@ -44,8 +45,17 @@ class ConnectEmailScreen extends ConsumerWidget {
                   }
                 } catch (e) {
                   if (context.mounted) {
+                    String errorMessage;
+                    if (e is PlatformException) {
+                      errorMessage = e.message ?? e.toString();
+                    } else {
+                      errorMessage = e.toString();
+                    }
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(AppLocalizations.of(context)!.failedToConnect(e.toString()))),
+                      SnackBar(
+                        content: Text(errorMessage),
+                        duration: const Duration(seconds: 5),
+                      ),
                     );
                   }
                 }

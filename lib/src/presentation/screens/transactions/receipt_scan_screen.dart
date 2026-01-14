@@ -169,9 +169,22 @@ class _ReceiptScanScreenState extends ConsumerState<ReceiptScanScreen> {
                       ..hasLineItems = _result!.hasLineItems
                       ..categoryId = categoryId;
                       
+                    // Save transaction and verify it was saved
+                    int? savedId;
                     await isar.writeTxn(() async {
-                      await isar.transactionModels.put(newTransaction);
+                      savedId = await isar.transactionModels.put(newTransaction);
                     });
+                    
+                    // Verify the transaction was actually saved
+                    if (savedId == null || savedId == Isar.autoIncrement) {
+                      throw Exception('Transaction save returned invalid ID');
+                    }
+                    
+                    // Verify it exists in the database
+                    final savedTransaction = await isar.transactionModels.get(savedId!);
+                    if (savedTransaction == null) {
+                      throw Exception('Transaction was not found in database after save');
+                    }
 
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -179,10 +192,15 @@ class _ReceiptScanScreenState extends ConsumerState<ReceiptScanScreen> {
                       );
                       Navigator.of(context).pop();
                     }
-                  } catch (e) {
+                  } catch (e, stackTrace) {
+                    debugPrint('Error saving transaction: $e');
+                    debugPrint('Stack trace: $stackTrace');
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error saving transaction: $e')),
+                        SnackBar(
+                          content: Text('Error saving transaction: ${e.toString()}'),
+                          duration: const Duration(seconds: 5),
+                        ),
                       );
                     }
                   }
