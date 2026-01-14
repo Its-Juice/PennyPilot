@@ -26,6 +26,9 @@ class BudgetModel {
   /// Carried over amount from previous period
   double carryOverAmount = 0;
 
+  /// Whether this budget is active
+  bool isActive = true;
+
   @Index()
   late DateTime createdAt;
 

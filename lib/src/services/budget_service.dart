@@ -48,7 +48,8 @@ class BudgetService {
     // Logic to detect if we've entered a new period and apply carry-overs
     // For now, let's implement a trigger-based rollover for simplicity
     await _isar.writeTxn(() async {
-      final budgets = await _isar.budgetModels.filter().rolloverEqualTo(true).findAll();
+      final allBudgets = await _isar.budgetModels.where().findAll();
+      final budgets = allBudgets.where((b) => b.rollover).toList();
       for (var budget in budgets) {
         // Find spending in the previous period
         final startOfPrevPeriod = _getStartOfPreviousPeriod(budget.period, now);

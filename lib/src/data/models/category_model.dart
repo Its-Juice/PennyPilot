@@ -19,6 +19,9 @@ class CategoryModel {
   /// Color in hex format (#RRGGBB)
   late String color;
 
+  /// Integer value of the color for easier use in Flutter
+  int? colorValue;
+
   /// Whether this is a system-defined category
   late bool isSystem;
 
