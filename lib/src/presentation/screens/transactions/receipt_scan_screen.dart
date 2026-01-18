@@ -7,6 +7,7 @@ import 'package:pennypilot/src/presentation/providers/data_providers.dart';
 import 'package:pennypilot/src/services/receipt_extraction_service.dart';
 import 'package:intl/intl.dart';
 import 'package:pennypilot/src/data/models/transaction_model.dart';
+import 'package:pennypilot/src/data/models/receipt_line_item_model.dart';
 import 'package:isar/isar.dart';
 
 class ReceiptScanScreen extends ConsumerStatefulWidget {
@@ -19,7 +20,7 @@ class ReceiptScanScreen extends ConsumerStatefulWidget {
 class _ReceiptScanScreenState extends ConsumerState<ReceiptScanScreen> {
   final ImagePicker _picker = ImagePicker();
   final TextRecognizer _textRecognizer = TextRecognizer();
-  
+
   bool _isProcessing = false;
   ExtractionResult? _result;
   File? _image;
@@ -43,10 +44,11 @@ class _ReceiptScanScreenState extends ConsumerState<ReceiptScanScreen> {
     try {
       final inputImage = InputImage.fromFilePath(photo.path);
       final recognizedText = await _textRecognizer.processImage(inputImage);
-      
+
       final extractionService = ref.read(receiptExtractionServiceProvider);
-      final result = await extractionService.extractReceiptFromOCRText(recognizedText.text);
-      
+      final result = await extractionService
+          .extractReceiptFromOCRText(recognizedText.text);
+
       setState(() {
         _result = result;
         _isProcessing = false;
@@ -93,7 +95,8 @@ class _ReceiptScanScreenState extends ConsumerState<ReceiptScanScreen> {
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.receipt_long, size: 64, color: Colors.grey),
+                child: const Icon(Icons.receipt_long,
+                    size: 64, color: Colors.grey),
               ),
             const SizedBox(height: 24),
             Row(
@@ -129,15 +132,17 @@ class _ReceiptScanScreenState extends ConsumerState<ReceiptScanScreen> {
   }
 
   Widget _buildResultCard(BuildContext context) {
-    final format = NumberFormat.currency(symbol: '\$'); // Should use app currency
-    
+    final format =
+        NumberFormat.currency(symbol: '\$'); // Should use app currency
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Detected Information', style: Theme.of(context).textTheme.titleLarge),
+            Text('Detected Information',
+                style: Theme.of(context).textTheme.titleLarge),
             const Divider(),
             _buildResultRow('Merchant', _result!.merchantName),
             _buildResultRow('Date', DateFormat.yMMMd().format(_result!.date)),
@@ -149,10 +154,12 @@ class _ReceiptScanScreenState extends ConsumerState<ReceiptScanScreen> {
                 onPressed: () async {
                   try {
                     final isar = ref.read(isarProvider);
-                    final categorizationService = ref.read(categorizationServiceProvider);
-                    
-                    final categoryId = await categorizationService.categorizeMerchant(_result!.merchantName);
-                    
+                    final categorizationService =
+                        ref.read(categorizationServiceProvider);
+
+                    final categoryId = await categorizationService
+                        .categorizeMerchant(_result!.merchantName);
+
                     final newTransaction = TransactionModel()
                       ..merchantName = _result!.merchantName
                       ..rawMerchantName = _result!.rawMerchantName
@@ -168,27 +175,32 @@ class _ReceiptScanScreenState extends ConsumerState<ReceiptScanScreen> {
                       ..extractionConfidence = _result!.overallConfidence
                       ..hasLineItems = _result!.hasLineItems
                       ..categoryId = categoryId;
-                      
-                    // Save transaction and verify it was saved
-                    int? savedId;
+
+                    // Save transaction and its line items in a single transaction
                     await isar.writeTxn(() async {
-                      savedId = await isar.transactionModels.put(newTransaction);
+                      final savedId =
+                          await isar.transactionModels.put(newTransaction);
+
+                      // Save line items if present
+                      if (_result!.hasLineItems) {
+                        for (var item in _result!.lineItems) {
+                          final lineItem = ReceiptLineItemModel()
+                            ..transactionId = savedId
+                            ..description = item.description
+                            ..amount = item.amount
+                            ..type = item.type
+                            ..order = item.order
+                            ..createdAt = DateTime.now();
+
+                          await isar.receiptLineItemModels.put(lineItem);
+                        }
+                      }
                     });
-                    
-                    // Verify the transaction was actually saved
-                    if (savedId == null || savedId == Isar.autoIncrement) {
-                      throw Exception('Transaction save returned invalid ID');
-                    }
-                    
-                    // Verify it exists in the database
-                    final savedTransaction = await isar.transactionModels.get(savedId!);
-                    if (savedTransaction == null) {
-                      throw Exception('Transaction was not found in database after save');
-                    }
 
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Transaction saved successfully!')),
+                        const SnackBar(
+                            content: Text('Transaction saved successfully!')),
                       );
                       Navigator.of(context).pop();
                     }
@@ -198,7 +210,8 @@ class _ReceiptScanScreenState extends ConsumerState<ReceiptScanScreen> {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Error saving transaction: ${e.toString()}'),
+                          content:
+                              Text('Error saving transaction: ${e.toString()}'),
                           duration: const Duration(seconds: 5),
                         ),
                       );

@@ -1,88 +1,72 @@
-# <p align="center"><img src="assets/pennypilot_logo.png" width="100" alt="PennyPilot Logo"><br>PennyPilot</p>
+# PennyPilot
 
-<p align="center">
-  <img src="https://img.shields.io/badge/FOSS-Free%20and%20Open%20Source-brightgreen?style=for-the-badge" alt="FOSS">
-  <img src="https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white" alt="Flutter">
-  <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License: MIT">
-  <img src="https://img.shields.io/badge/Privacy-100%25%20Local-blue.svg?style=for-the-badge" alt="Privacy: Local">
-</p>
+PennyPilot is a privacy-focused, local-first personal finance application designed for automated expense tracking and subscription management. By leveraging on-device processing and localized machine learning, PennyPilot provides a comprehensive financial dashboard without compromising user data sovereignty.
 
----
+## Project Overview
 
-**PennyPilot** is a sophisticated, privacy-first personal finance application that acts as your personal financial navigator. Unlike traditional apps that require you to manually input every coffee or upload your data to a black-box cloud, PennyPilot brings intelligence directly to your device.
+PennyPilot automates the process of transaction logging by directly interfacing with email providers (via OAuth 2.0) to identify and extract data from digital receipts. All data processing, including OCR and AI-driven analysis, is performed locally on the user's device.
 
-It automatically scans your inbox (Gmail) for receipts and subscriptions, extracting transaction details locally. **Your emails never leave your device ecosystem.**
+## Core Capabilities
 
----
+- **Localized Data Sovereignty**: All financial data and processing remain local to the device. No cloud synchronization or external data storage is utilized by default.
+- **Automated Receipt Ingestion**: Intelligent scanning of connected email accounts to identify and process receipts from major merchants.
+- **Subscription Intelligence**: Automated detection of recurring service charges with proactive monitoring for price adjustments and renewal cycles.
+- **Predictive Liquidity (Safe-to-Spend)**: Dynamic calculation of available funds based on budget constraints and projected upcoming obligations.
+- **Advanced Analytics**: Granular spending breakdowns and historical trend analysis via an intuitive dashboard.
+- **Cross-Platform Compatibility**: Consistent experience across Android, Linux, and Windows environments.
 
-## Core Features
+## Technical Architecture
 
-| Feature | Description |
-| :--- | :--- |
-| **Privacy First** | 100% local data processing. No cloud sync, no tracking, no data selling. |
-| **Smart Inbox Scan** | Automatically detects receipts from Amazon, Uber, Spotify, and more. |
-| **Subscription Tracker** | Intelligent detection of recurring bills with renewal alerts and price hike detection. |
-| **Safe-to-Spend** | Calculates how much you can spend per day based on your budget and upcoming bills. |
-| **Insights & Analytics** | Beautiful charts and spending breakdowns per category. |
-| **Material You** | Professional Material 3 UI with adaptive themes, dark mode, and Lottie animations. |
-| **Multi-Platform** | Seamless experience across Android, Linux, and Windows. |
+The application is built upon a modern, high-performance tech stack:
 
----
+- **Framework**: Flutter
+- **State Management**: Riverpod
+- **Storage Layer**: Isar Database (Wait-free, local-first NoSQL)
+- **Security**: Google OAuth 2.0 for secure, scoped data access
+- **Intelligence**: MediaPipe and Gemma (local LLM) for advanced extraction
+- **Infrastructure**: Biometric authentication via local_auth and standards-based cryptography
 
-## Tech Stack
+## Implementation Guide
 
-- **Core**: [Flutter](https://flutter.dev)
-- **State Management**: [Riverpod](https://riverpod.dev)
-- **Database**: [Isar](https://isar.dev) (Ultra-fast, local-first)
-- **Authentication**: [Google OAuth 2.0](https://developers.google.com/identity/protocols/oauth2)
-- **Local AI**: [MediaPipe](https://developers.google.com/mediapipe) & [Gemma](https://github.com/google-deepmind/gemma) (Experimental)
-- **Security**: [local_auth](https://pub.dev/packages/local_auth) & [cryptography](https://pub.dev/packages/cryptography)
+### Prerequisites
 
----
+- Flutter SDK (stable channel)
+- Google Cloud Platform project configured for OAuth 2.0
 
-## Getting Started
+### Configuration
 
-### 1. Prerequisites
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) installed.
-- A Google Cloud Project for OAuth credentials.
+1. **Authentication Secrets**:
+   - Initialize `lib/src/config/secrets.dart` with valid Google Client IDs.
+2. **Android Integration**:
+   - Register the application SHA-1 fingerprint within the Google Cloud Console.
+   - Application Identifier: `com.example.pennypilot`
 
-### 2. Configuration
-1.  **OAuth Credentials**:
-    - Add `lib/src/config/secrets.dart` with your Google Client IDs.
-2.  **Android Setup**:
-    - Follow the [Detailed Android Setup Guide](docs/android-setup.md) to register your SHA-1.
-    - Package Name: `com.example.pennypilot`
+### Local Execution
 
-### 3. Build & Run
+To initialize the project and execute a development build:
+
 ```bash
 flutter pub get
 flutter run
 ```
 
----
+## Security Model
 
-## Privacy & Security
+The security architecture of PennyPilot is based on a zero-trust approach regarding external servers:
 
-PennyPilot is built on the philosophy that **Financial Data is Private Data**.
-1. **No External Servers**: We do not host any back-end servers that store your data.
-2. **Local Scanning**: Email content is fetched via OAuth2 directly to your device and parsed in memory.
-3. **Encrypted Backups**: Optional passphrase protection for your data exports.
-4. **Open Source**: Audit our code anytime.
-
----
+- **Zero-Cloud Architecture**: No proprietary back-end servers are used for data storage or processing.
+- **Scoped Permissions**: Email access is granted via limited OAuth 2.0 scopes, ensuring the application only interacts with relevant financial communications.
+- **Encrypted Exports**: Optional AES encryption for data backups and exports.
+- **Code Transparency**: The codebase is open for security auditing and community review.
 
 ## Contributing
 
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions and coding standards.
-
----
+Contributions to the PennyPilot ecosystem are welcome. Please refer to `CONTRIBUTING.md` for detailed information on development standards, pull request processes, and the project's code of conduct.
 
 ## License
 
-Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
+This project is licensed under the MIT License. See the `LICENSE` file for full details.
 
 ---
 
-<p align="center">
-  Built with ❤️ by the PennyPilot Community
-</p>
+PennyPilot Project Contributors
