@@ -17,7 +17,8 @@ class LLMExtractionService {
       final modelPath = await _getModelPath();
       if (!await File(modelPath).exists()) {
         _logger.warning(
-            'LLM model file not found at $modelPath. LLM extraction will be disabled.');
+          'LLM model file not found at $modelPath. LLM extraction will be disabled.',
+        );
         return;
       }
 
@@ -64,19 +65,14 @@ class LLMExtractionService {
 
   String _buildPrompt(String text) {
     return '''
-Extract transaction details from the following receipt or email text. 
-Return ONLY a JSON object with these fields:
-- merchant: (string) name of the store or service provider
-- amount: (number) the FINAL total amount paid
-- date: (string) YYYY-MM-DD
-- currency: (string) 3-letter code or symbol
-- tax: (number) total tax amount if present
-- items: (list of {description: string, price: number})
-
-Rules:
-1. If a field is unknown, use null.
-2. Return ONLY the JSON object, NO other text.
-3. Be careful with OCR noise; look for patterns that look like prices and store names.
+SYSTEM: You are a forensic receipt parser. Extract EXACTLY:
+1. Merchant (first line bold/caps)
+2. Date (DD/MM/YYYY or ISO)
+3. Items + prices (table format)
+4. Tax/VAT total
+5. Payment method (last line)
+6. Categories: ['Groceries','Transport','Entertainment','Bills','Income']
+JSON output only. Never guess missing data.
 
 Input Text:
 ---
@@ -105,11 +101,15 @@ JSON Response:
         currency: data['currency'] as String?,
         tax: (data['tax'] as num?)?.toDouble(),
         items: (data['items'] as List?)
-            ?.map((e) => {
-                  'description': e['description'] as String? ?? '',
-                  'price': (e['price'] as num?)?.toDouble() ?? 0.0,
-                })
+            ?.map(
+              (e) => {
+                'description': e['description'] as String? ?? '',
+                'price': (e['price'] as num?)?.toDouble() ?? 0.0,
+              },
+            )
             .toList(),
+        paymentMethod: data['payment_method'] as String?,
+        category: (data['categories'] as List?)?.firstOrNull as String?,
       );
     } catch (e) {
       _logger.warning('Failed to parse LLM response: $e\nResponse: $response');
@@ -125,6 +125,8 @@ class LLMExtractionResult {
   final String? currency;
   final double? tax;
   final List<Map<String, dynamic>>? items;
+  final String? paymentMethod;
+  final String? category;
 
   LLMExtractionResult({
     this.merchant,
@@ -133,5 +135,7 @@ class LLMExtractionResult {
     this.currency,
     this.tax,
     this.items,
+    this.paymentMethod,
+    this.category,
   });
 }

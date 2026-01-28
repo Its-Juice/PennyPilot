@@ -11,8 +11,8 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  flutter_riverpod: ^2.5.1
-  flutter_hooks: ^0.20.5
+  flutter_riverpod: ^2.6.1
+  flutter_hooks: ^0.21.1
   riverpod_annotation: any
   drift: ^2.20.0
   sqlite3_flutter_libs: ^0.5.24
@@ -38,8 +38,10 @@ dependencies:
   http: ^1.1.0
   cryptography: any
   receipt_recognition: ^0.2.8
-  google_mlkit_text_recognition: ^0.15.0
   tflite_flutter: ^0.11.0
+  google_mlkit_text_recognition: ^0.11.0
+  isolate_agents: ^0.2.0
+  rive: ^0.13.4
   image_picker: any
   flutter_colorpicker: any
   shimmer: ^3.0.0
