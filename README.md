@@ -1,6 +1,6 @@
-<div align="center">
+<img src="assets/pennypilot%20banner.svg" width="100%" alt="PennyPilot Banner" />
 
-# <img src="assets/pennypilot%20logo.png" width="64" /> PennyPilot
+<div align="center">
 
 **Sovereign Personal Finance. Powered by Local AI.**
 
